@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* Basis-Reset für Light-Theme */
+html, body, #root {
+  height: 100%;
+}
+body {
+  @apply bg-white text-neutral-900 antialiased;
+}
+
+/* Nummern-Spinner (Pfeile) in Inputs ausblenden */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield; /* Modern */
+}
