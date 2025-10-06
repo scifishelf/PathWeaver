@@ -1,4 +1,4 @@
-name: 🚀 Deploy SciFi Companion to Hetzner
+name: 🚀 Deploy PathWeaver (Frontend) to Hetzner
 
 on:
   push:
@@ -14,168 +14,41 @@ jobs:
       group: deploy-main
       cancel-in-progress: false
 
+    env:
+      REMOTE_DIR: /home/deployuser/pathweaver
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 🔑 Set up SSH key
+      - name: 🧰 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: 📦 Install deps
+        working-directory: web
+        run: npm ci
+
+      - name: 🏗️ Build (Vite)
+        working-directory: web
+        run: npm run build
+
+      - name: 🔑 Setup SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H ${{ secrets.HETZNER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 🚀 Deploy via SSH
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} << 'EOF'
-            cd ~/scifi-companion
-            
-            echo "📥 Pulling latest changes (force)..."
-            git fetch origin main
-            git reset --hard origin/main
-            
-            echo "🔍 Checking database connectivity..."
-            # Test database connection with environment variables from .env
-            if [ -f .env ]; then
-              # Normalize CRLF -> LF to avoid Docker env-file parsing issues
-              sed -i 's/\r$//' .env
-              source .env
-              echo "✅ Environment file loaded (normalized to LF)"
-            else
-              echo "❌ .env file not found - deployment aborted"
-              exit 1
-            fi
-            
-            echo "🛑 Stopping old services..."
-            docker stop scifi_backend 2>/dev/null || true
-            docker rm scifi_backend 2>/dev/null || true
-            
-            echo "🏗️ Building backend image..."
-            docker build -f infra/Dockerfile.backend -t scifi-companion_backend .
-            
-            if [ $? -ne 0 ]; then
-              echo "❌ Docker build failed - deployment aborted"
-              exit 1
-            fi
-            
-            echo "🔄 Running database migrations (with proper credentials)..."
-            docker run --rm --env-file .env --network host scifi-companion_backend npm run db:push || echo "Migration completed (may have been up to date)"
-            
-            echo "🚀 Starting backend service..."
-            docker run -d --name scifi_backend -p 5000:5000 --env-file .env --network host --restart unless-stopped scifi-companion_backend
-            
-            if [ $? -ne 0 ]; then
-              echo "❌ Backend startup failed - deployment aborted"
-              exit 1
-            fi
-            
-            echo "⏳ Waiting for backend to be ready..."
-            sleep 15
-            
-            echo "🔍 Checking backend status..."
-            docker logs --tail=10 scifi_backend
+      - name: 📂 Create remote dir
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} "mkdir -p $REMOTE_DIR"
 
-            # Verify SMTP related variables inside the container (debugging aid)
-            echo "🔎 Inspect SMTP env inside container:"
-            docker exec -i scifi_backend env | egrep "^(SMTP|SMPT|MAIL_FROM|EMAIL_DEBUG)=" || true
-            
-            # Basic health check without external dependencies
-            if docker ps | grep -q scifi_backend; then
-              echo "✅ Backend container is running"
-            else
-              echo "❌ Backend container failed to start"
-              docker logs scifi_backend
-              exit 1
-            fi
-            
-            echo "✅ Backend deployment completed!"
-          EOF
-
-      - name: 🧪 Backend Health Check (direct)
+      - name: 📤 Upload build (rsync)
         run: |
-          echo "🏥 Performing backend health checks..."
-          sleep 10
-          
-          # Check if backend is responding
-          if curl -f -s http://${{ secrets.HETZNER_HOST }}:5000/healthz > /dev/null; then
-            echo "✅ Backend is healthy"
-          else
-            echo "❌ Backend health check failed - checking logs..."
-            # Show logs for debugging
-            ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} "docker logs --tail=20 scifi_backend"
-          fi
+          rsync -az --delete web/dist/ ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:$REMOTE_DIR/
 
-      - name: 🗄️  Database Health Check
-        run: |
-          echo "🔍 Checking database connectivity..."
-          ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} << 'EOF'
-            # Test database via backend
-            if curl -f -s http://localhost:5000/api/books?limit=1 > /dev/null; then
-              echo "✅ Database connectivity via backend OK"
-            else
-              echo "⚠️ Database connectivity test failed - this may be OK if database is empty"
-            fi
-          EOF
-
-      - name: 🌐 Domain Health Check (via nginx → backend)
-        run: |
-          echo "🌐 Checking domain through reverse proxy..."
-          # Basic HTML fetch to ensure updated build is served
-          curl -fsS http://www.scifi-and-beyond.com/ | head -n 20 || (echo "❌ Domain fetch failed" && exit 1)
-          # Backend health via domain (proxied)
-          if curl -f -s http://www.scifi-and-beyond.com/healthz > /dev/null; then
-            echo "✅ Domain proxies backend health successfully"
-          else
-            echo "⚠️ Domain health endpoint not reachable via proxy"
-          fi
-
-      - name: 🧹 Docker Cleanup
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} << 'EOF'
-            echo "🧹 Starting Docker cleanup process..."
-            
-            # Show disk usage before cleanup
-            echo "💾 Disk usage before cleanup:"
-            df -h / | grep -E "/$"
-            docker system df
-            
-            # Remove stopped containers (except the current one)
-            echo "🗑️ Removing stopped containers..."
-            docker container prune -f
-            
-            # Remove unused images (keep current backend image)
-            echo "🖼️ Removing unused images..."
-            docker image prune -a -f --filter "until=24h"
-            
-            # Remove unused networks
-            echo "🌐 Removing unused networks..."
-            docker network prune -f
-            
-            # Remove unused volumes (be careful with data)
-            echo "💾 Removing unused volumes..."
-            docker volume prune -f
-            
-            # Remove build cache older than 7 days
-            echo "🏗️ Removing old build cache..."
-            docker builder prune -a -f --filter "until=168h"
-            
-            # Show disk usage after cleanup
-            echo "💾 Disk usage after cleanup:"
-            df -h / | grep -E "/$"
-            docker system df
-            
-            echo "✅ Docker cleanup completed!"
-          EOF
-
-      - name: 📢 Deployment Status
-        if: always()
-        run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            echo "🎉 SciFi Companion deployed successfully!"
-            echo "🚀 Backend API: http://${{ secrets.HETZNER_HOST }}:5000"
-            echo "🌐 Frontend: http://${{ secrets.HETZNER_HOST }}:5000 (served by backend)"
-            echo "🎯 Domain: Configure nginx to proxy www.scifi-and-beyond.com → localhost:5000"
-            echo "🗄️  Database: External Database (no local PostgreSQL)"
-          else
-            echo "❌ Deployment failed - check logs above"
-          fi 
+      - name: ✅ Post-deploy check (list files)
+        run: ssh -o StrictHostKeyChecking=no ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }} "ls -la $REMOTE_DIR | head -n 20"
