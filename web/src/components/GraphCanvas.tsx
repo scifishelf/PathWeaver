@@ -284,14 +284,28 @@ export function GraphCanvas() {
             }}
           />
         </Panel>
-        <Panel position="top-left" style={{ left: 72, top: 16 }}>
+        <Panel position="top-left" style={{ left: 72, top: 16, zIndex: 10002 }}>
           <button
             aria-label="Neuen Task hinzufügen"
             title="Neuen Task hinzufügen"
             onClick={addTaskNode}
-            className="h-16 w-16 rounded-full bg-green-600 text-white text-4xl leading-none shadow-xl hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-500/50 flex items-center justify-center"
+            style={{
+              height: 64,
+              width: 64,
+              borderRadius: 9999,
+              background: '#16a34a',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 20px rgba(0,0,0,.25)',
+              border: '2px solid #065f46',
+              cursor: 'pointer',
+            }}
           >
-            +
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            </svg>
           </button>
         </Panel>
       </ReactFlow>
