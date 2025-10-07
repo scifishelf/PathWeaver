@@ -193,7 +193,6 @@ export function GraphCanvas() {
     const orphan = new Set<string>()
     for (const n of nodes) if (n.type !== 'start' && !reachableFromStart.has(n.id)) orphan.add(n.id)
     const computed = cp?.nodes
-    const cpSet = new Set(cp?.criticalPath ?? [])
     return nodes.map((n) => {
       const baseStyle: any = n.style ? { ...n.style } : {}
       if (orphan.has(n.id) || nodesWithTooManyOut.has(n.id)) {
