@@ -266,7 +266,7 @@ export function GraphCanvas() {
             edges={edges as any}
             computed={cp as any}
             startDate={startDate}
-            onImport={(nn, ee) => {
+            onImport={(nn, ee, importedStartDate) => {
               setNodes(nn as any)
               setEdges(ee as any)
               // Seed den lokalen Zähler anhand der importierten IDs
@@ -276,7 +276,7 @@ export function GraphCanvas() {
                 .map((m: any) => parseInt(m[1], 10))
               const max = m.length ? Math.max(...(m as number[])) : 0
               if (max >= idRef.current) idRef.current = max + 1
-              setStartDate(undefined)
+              setStartDate(importedStartDate)
               setTimeout(() => validate(), 0)
             }}
           />
