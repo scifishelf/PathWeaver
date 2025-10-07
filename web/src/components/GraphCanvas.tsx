@@ -11,6 +11,7 @@ import { ContextMenu } from './ContextMenu'
 import { validateGraph } from '../graph/validate'
 import { computeCPM } from '../cpm/compute'
 import { AppToolbar } from './AppToolbar'
+import { CRITICAL_BG } from '../graph/theme'
 import { toProjectJSON, fromProjectJSON } from '../persistence/serialize'
 import { saveCurrent, loadCurrent } from '../persistence/autosave'
 
@@ -199,10 +200,7 @@ export function GraphCanvas() {
         baseStyle.border = '2px solid #ef4444'
         baseStyle.boxShadow = '0 1px 3px rgba(239,68,68,.3)'
       }
-      if (cpSet.has(n.id)) {
-        baseStyle.border = '2px solid #2563eb'
-        baseStyle.boxShadow = '0 1px 3px rgba(37,99,235,.35)'
-      }
+      // Kritische Knoten nicht mehr über Border markieren; Hintergrund übernimmt jeweilige Node-Komponente
       if (n.type === 'task') {
         return { ...n, style: baseStyle, data: { ...(n.data as any), id: n.id, computed: computed?.[n.id], onEdit: onEditTask, startDate } as any }
       }
@@ -290,8 +288,8 @@ export function GraphCanvas() {
             title="Neuen Task hinzufügen"
             onClick={addTaskNode}
             style={{
-              height: 64,
-              width: 64,
+              height: 45,
+              width: 45,
               borderRadius: 9999,
               background: '#16a34a',
               color: '#fff',
@@ -303,7 +301,7 @@ export function GraphCanvas() {
               cursor: 'pointer',
             }}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
           </button>
@@ -318,12 +316,12 @@ export function GraphCanvas() {
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 10000,
-            background: '#fff',
-            border: '1px solid #d4d4d8',
+            background: CRITICAL_BG,
+            border: '1px solid #bfdbfe',
             borderRadius: 8,
             padding: '6px 12px',
             fontSize: 12,
-            boxShadow: '0 2px 8px rgba(0,0,0,.1)'
+            boxShadow: '0 2px 8px rgba(37,99,235,.15)'
           }}
         >
           <span>

@@ -1,5 +1,6 @@
 import { Handle, Position } from 'reactflow'
 import { useState, useEffect } from 'react'
+import { CRITICAL_BG } from './theme'
 
 export function StartNode({ data }: { data: { label: string; startDate?: string; onChangeStartDate?: (v?: string) => void } }) {
   const [value, setValue] = useState<string>(data.startDate || '')
@@ -13,7 +14,7 @@ export function StartNode({ data }: { data: { label: string; startDate?: string;
         minWidth: 120,
         textAlign: 'center',
         padding: '6px 10px',
-        background: '#fff',
+        background: CRITICAL_BG,
         border: '2px solid #d4d4d8',
         borderRadius: 8,
         boxShadow: '0 1px 3px rgba(0,0,0,.12)',
