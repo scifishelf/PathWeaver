@@ -1,6 +1,6 @@
 import { toProjectJSON, fromProjectJSON, validateProjectJSON } from '../persistence/serialize'
 import { saveSnapshot, listSnapshots, loadSnapshot, deleteSnapshot } from '../persistence/autosave'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Modal } from './Modal'
 import domtoimage from 'dom-to-image-more'
 import type { Edge, Node } from 'reactflow'
@@ -18,7 +18,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
   const [open, setOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
-  const [importPayload, setImportPayload] = useState<any | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   useEffect(() => {
     setSnaps(listSnapshots())
   }, [])
@@ -33,10 +33,31 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
     URL.revokeObjectURL(url)
   }
 
-  async function onImportClick() {
-    setImportOpen(true)
-    setImportErrors([])
-    setImportPayload(null)
+  function triggerFileDialog() {
+    if (!fileInputRef.current) return
+    // Reset, damit erneut die gleiche Datei gewählt werden kann
+    fileInputRef.current.value = ''
+    fileInputRef.current.click()
+  }
+
+  async function handleFileSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.currentTarget.files?.[0]
+    if (!file) return
+    const text = await file.text()
+    try {
+      const parsed = JSON.parse(text)
+      const errs = validateProjectJSON(parsed)
+      if (errs.length) {
+        setImportErrors(errs)
+        setImportOpen(true)
+        return
+      }
+      const { nodes: nn, edges: ee } = fromProjectJSON(parsed)
+      onImport(nn, ee, parsed.settings?.startDate)
+    } catch (err) {
+      setImportErrors(['Ungültiges JSON'])
+      setImportOpen(true)
+    }
   }
 
   return (
@@ -144,7 +165,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
         )}
       </div>
       <button
-        onClick={onImportClick}
+        onClick={triggerFileDialog}
         style={{
           padding: '6px 12px',
           border: '1px solid #d4d4d8',
@@ -156,6 +177,14 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
       >
         Import
       </button>
+      {/* Verstecktes Datei-Input für Direktimport */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json"
+        onChange={handleFileSelected}
+        style={{ display: 'none' }}
+      />
       <button
         onClick={async () => {
           const el = document.querySelector('.react-flow') as HTMLElement | null
@@ -187,54 +216,16 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
         PNG
       </button>
       <Modal open={importOpen} onClose={() => setImportOpen(false)} title="JSON importieren">
-        <div className="space-y-3">
-          <input
-            type="file"
-            accept="application/json"
-            onChange={async (e) => {
-              const file = e.currentTarget.files?.[0]
-              if (!file) return
-              const text = await file.text()
-              try {
-                const parsed = JSON.parse(text)
-                const errs = validateProjectJSON(parsed)
-                setImportPayload(parsed)
-                setImportErrors(errs)
-              } catch (err) {
-                setImportErrors(['Ungültiges JSON'])
-                setImportPayload(null)
-              }
-            }}
-          />
-          {importErrors.length > 0 && (
-            <div className="text-sm">
-              <div className="font-medium mb-1">Prüfung ergab Fehler:</div>
-              <ul className="list-disc pl-5">
-                {importErrors.map((e, i) => (
-                  <li key={i}>{e}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={() => setImportOpen(false)}
-              className="px-3 py-1.5 rounded border text-sm bg-white"
-            >
-              Abbrechen
-            </button>
-            <button
-              onClick={() => {
-                if (!importPayload) return
-                if (importErrors.length) return
-                const { nodes: nn, edges: ee } = fromProjectJSON(importPayload)
-                onImport(nn, ee, importPayload.settings?.startDate)
-                setImportOpen(false)
-              }}
-              className="px-3 py-1.5 rounded border text-sm bg-blue-600 text-white disabled:opacity-50"
-              disabled={!importPayload || importErrors.length > 0}
-            >
-              Import übernehmen
+        <div className="space-y-3 text-sm">
+          <div className="font-medium">Die Datei konnte nicht importiert werden:</div>
+          <ul className="list-disc pl-5">
+            {importErrors.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+          <div className="flex justify-end">
+            <button onClick={() => setImportOpen(false)} className="px-3 py-1.5 rounded border text-sm bg-white">
+              Schließen
             </button>
           </div>
         </div>
