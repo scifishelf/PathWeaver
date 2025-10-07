@@ -95,7 +95,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
               <button
                 onClick={() => {
                   try {
-                    const pj = toProjectJSON(nodes, edges)
+                    const pj = toProjectJSON(nodes, edges, undefined, startDate)
                     saveSnapshot(pj)
                     setSnaps(listSnapshots())
                   } catch {}
@@ -118,7 +118,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                           const pj = loadSnapshot(s.id)
                           if (pj) {
                             const { nodes: nn, edges: ee } = fromProjectJSON(pj as any)
-                            onImport(nn, ee)
+                            onImport(nn, ee, (pj as any).settings?.startDate)
                             setOpen(false)
                           }
                         }}

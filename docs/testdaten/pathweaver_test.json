@@ -1,0 +1,143 @@
+{
+  "settings": {
+    "version": "1.0",
+    "startDate": "2025-10-06"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "type": "start",
+      "x": 120,
+      "y": 300
+    },
+    {
+      "id": "end",
+      "type": "end",
+      "x": 1040,
+      "y": 300
+    },
+    {
+      "id": "N2",
+      "type": "task",
+      "x": 400,
+      "y": 136,
+      "title": "UserStory 1",
+      "duration": 1
+    },
+    {
+      "id": "N3",
+      "type": "task",
+      "x": 712,
+      "y": 264,
+      "title": "UserStory 4",
+      "duration": 3
+    },
+    {
+      "id": "N4",
+      "type": "task",
+      "x": 536,
+      "y": 472,
+      "title": "User Story 3",
+      "duration": 10
+    },
+    {
+      "id": "N6",
+      "type": "task",
+      "x": 416,
+      "y": 288,
+      "title": "User Story 2",
+      "duration": 2
+    }
+  ],
+  "edges": [
+    {
+      "from": "start",
+      "to": "N2"
+    },
+    {
+      "from": "N2",
+      "to": "N3"
+    },
+    {
+      "from": "N3",
+      "to": "end"
+    },
+    {
+      "from": "start",
+      "to": "N4"
+    },
+    {
+      "from": "N4",
+      "to": "end"
+    },
+    {
+      "from": "start",
+      "to": "N6"
+    },
+    {
+      "from": "N6",
+      "to": "N3"
+    }
+  ],
+  "computed": {
+    "nodes": {
+      "start": {
+        "ES": 0,
+        "EF": 0,
+        "LS": 0,
+        "LF": 0,
+        "slack": 0,
+        "critical": true
+      },
+      "end": {
+        "ES": 10,
+        "EF": 10,
+        "LS": 10,
+        "LF": 10,
+        "slack": 0,
+        "critical": true
+      },
+      "N2": {
+        "ES": 0,
+        "EF": 1,
+        "LS": 6,
+        "LF": 7,
+        "slack": 6,
+        "critical": false
+      },
+      "N3": {
+        "ES": 2,
+        "EF": 5,
+        "LS": 7,
+        "LF": 10,
+        "slack": 5,
+        "critical": false
+      },
+      "N4": {
+        "ES": 0,
+        "EF": 10,
+        "LS": 0,
+        "LF": 10,
+        "slack": 0,
+        "critical": true
+      },
+      "N6": {
+        "ES": 0,
+        "EF": 2,
+        "LS": 5,
+        "LF": 7,
+        "slack": 5,
+        "critical": false
+      }
+    },
+    "criticalPath": [
+      "start",
+      "N4",
+      "end"
+    ],
+    "project": {
+      "durationAT": 10,
+      "earliestFinishISO": "2025-10-20"
+    }
+  }
+}
