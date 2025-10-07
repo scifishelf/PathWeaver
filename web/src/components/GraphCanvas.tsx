@@ -7,7 +7,7 @@ import { TaskNode } from '../graph/TaskNode'
 import type { Connection } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { ContextMenu } from './ContextMenu'
-import { Banner } from './Banner'
+// import { Banner } from './Banner'
 import { validateGraph } from '../graph/validate'
 import { computeCPM } from '../cpm/compute'
 import { AppToolbar } from './AppToolbar'
@@ -204,13 +204,13 @@ export function GraphCanvas() {
         baseStyle.boxShadow = '0 1px 3px rgba(37,99,235,.35)'
       }
       if (n.type === 'task') {
-        return { ...n, style: baseStyle, data: { ...(n.data as any), id: n.id, computed: computed?.[n.id], onEdit: onEditTask } as any }
+        return { ...n, style: baseStyle, data: { ...(n.data as any), id: n.id, computed: computed?.[n.id], onEdit: onEditTask, startDate } as any }
       }
       if (n.type === 'start') {
         return { ...n, style: baseStyle, data: { ...(n.data as any), startDate, onChangeStartDate: setStartDate } as any }
       }
       if (n.type === 'end') {
-        return { ...n, style: baseStyle, data: { ...(n.data as any), earliestFinish: cp?.project?.earliestFinishISO } as any }
+        return { ...n, style: baseStyle, data: { ...(n.data as any), startDate, computed: cp?.nodes?.[n.id] } as any }
       }
       return { ...n, style: baseStyle }
     })
@@ -241,27 +241,6 @@ export function GraphCanvas() {
 
   return (
     <div className="w-full h-full relative" style={{ width: '100%', height: '100%', background: '#eef2f7' }}>
-      <div style={{ position: 'absolute', top: 12, right: 16, zIndex: 10001 }}>
-        <AppToolbar
-          nodes={nodes as any}
-          edges={edges as any}
-          computed={cp as any}
-          startDate={startDate}
-          onImport={(nn, ee) => {
-            setNodes(nn as any)
-            setEdges(ee as any)
-            // Seed den lokalen Zähler anhand der importierten IDs
-            const m = nn
-              .map((n) => /^N(\d+)$/.exec(n.id))
-              .filter(Boolean)
-              .map((m: any) => parseInt(m[1], 10))
-            const max = m.length ? Math.max(...(m as number[])) : 0
-            if (max >= idRef.current) idRef.current = max + 1
-            setStartDate(undefined)
-            setTimeout(() => validate(), 0)
-          }}
-        />
-      </div>
       <ReactFlow
         nodes={styledNodes}
         edges={styledEdges}
@@ -284,12 +263,33 @@ export function GraphCanvas() {
         <Background />
         <MiniMap />
         <Controls />
-        <Panel position="bottom-left" style={{ left: 56, bottom: 16 }}>
+        <Panel position="top-right" style={{ right: 16, top: 16 }}>
+          <AppToolbar
+            nodes={nodes as any}
+            edges={edges as any}
+            computed={cp as any}
+            startDate={startDate}
+            onImport={(nn, ee) => {
+              setNodes(nn as any)
+              setEdges(ee as any)
+              // Seed den lokalen Zähler anhand der importierten IDs
+              const m = nn
+                .map((n) => /^N(\d+)$/.exec(n.id))
+                .filter(Boolean)
+                .map((m: any) => parseInt(m[1], 10))
+              const max = m.length ? Math.max(...(m as number[])) : 0
+              if (max >= idRef.current) idRef.current = max + 1
+              setStartDate(undefined)
+              setTimeout(() => validate(), 0)
+            }}
+          />
+        </Panel>
+        <Panel position="top-left" style={{ left: 72, top: 16 }}>
           <button
-            aria-label="Task hinzufügen"
-            title="Task hinzufügen"
+            aria-label="Neuen Task hinzufügen"
+            title="Neuen Task hinzufügen"
             onClick={addTaskNode}
-            className="h-11 w-11 rounded-full bg-blue-600 text-white text-2xl leading-none shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center"
+            className="h-16 w-16 rounded-full bg-green-600 text-white text-4xl leading-none shadow-xl hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-500/50 flex items-center justify-center"
           >
             +
           </button>
@@ -314,7 +314,7 @@ export function GraphCanvas() {
         >
           <span>
             Kritischer Pfad: {cp.criticalPath.join(' → ')} · Dauer {cp.project.durationAT} AT
-            {cp.project.earliestFinishISO ? ` · Ende ${cp.project.earliestFinishISO}` : ''}
+            {cp.project.earliestFinishISO ? ` · Ende ${cp.project.earliestFinishISO.slice(8,10)}.${cp.project.earliestFinishISO.slice(5,7)}.${cp.project.earliestFinishISO.slice(2,4)}` : ''}
           </span>
         </div>
       )}
@@ -330,14 +330,19 @@ export function GraphCanvas() {
             pointerEvents: 'none',
           }}
         >
-          <Banner>
+          <div style={{
+            background: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: 8,
+            padding: 12
+          }}>
             <div style={{ fontWeight: 600, marginBottom: 4 }}>Fehler im Graphen</div>
             <ul style={{ paddingLeft: 18 }}>
               {errors.map((e, i) => (
                 <li key={i}>{e}</li>
               ))}
             </ul>
-          </Banner>
+          </div>
         </div>
       )}
       {menu && (
@@ -354,7 +359,7 @@ export function GraphCanvas() {
           ]}
         />
       )}
-      {/* FAB jetzt im React Flow Panel (unten links) */}
+      {/* FAB jetzt im React Flow Panel (oben links) */}
     </div>
   )
 }

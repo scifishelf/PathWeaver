@@ -1,6 +1,7 @@
 import { Handle, Position } from 'reactflow'
+import { formatWorkdayToDate } from '../cpm/workdays'
 
-export function EndNode({ data }: { data: { label: string; earliestFinish?: string } }) {
+export function EndNode({ data }: { data: { label: string; startDate?: string; computed?: { EF?: number; LF?: number } } }) {
   return (
     <div
       style={{
@@ -16,10 +17,9 @@ export function EndNode({ data }: { data: { label: string; earliestFinish?: stri
       }}
     >
       <Handle type="target" position={Position.Left} />
-      <div style={{ marginBottom: 6 }}>{data.label}</div>
-      {data.earliestFinish && (
-        <div style={{ fontSize: 12, color: '#374151' }}>Ende: {data.earliestFinish}</div>
-      )}
+      <div style={{ marginBottom: 6, fontWeight: 600 }}>{data.label}</div>
+      {/* Ein Datum: Projektende (EF == LF am Ziel) */}
+      <div style={{ fontSize: 12, color: '#374151' }}>{formatWorkdayToDate(data.startDate, data.computed?.EF)}</div>
     </div>
   )
 }

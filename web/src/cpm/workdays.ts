@@ -21,4 +21,27 @@ export function addWorkdays(start: Date, n: number): Date {
   return d
 }
 
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : String(n)
+}
+
+export function formatDateShort(d: Date): string {
+  const dd = pad2(d.getDate())
+  const mm = pad2(d.getMonth() + 1)
+  const yy = pad2(d.getFullYear() % 100)
+  return `${dd}.${mm}.${yy}`
+}
+
+// Formatiert eine Arbeitstag-Offset (ab Projektstart) zu TT.MM.JJ
+export function formatWorkdayToDate(startISO: string | undefined, workday?: number): string {
+  if (!startISO || workday === undefined || workday === null) return '—'
+  try {
+    const start = nextWorkday(new Date(startISO))
+    const d = addWorkdays(start, workday)
+    return formatDateShort(d)
+  } catch {
+    return '—'
+  }
+}
+
 
