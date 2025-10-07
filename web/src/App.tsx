@@ -10,7 +10,7 @@ export default function App() {
     <div className="min-h-screen">
       <header className="border-b">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">PathWeaver – Netzplan‑Tool (MVP)</h1>
+          <h1 className="text-3xl font-bold">PathWeaver – Netzplan‑Tool (MVP)</h1>
           <div className="flex items-center gap-3">
             {/* Hilfe temporär ausgeblendet */}
           </div>

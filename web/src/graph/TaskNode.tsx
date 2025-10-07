@@ -1,6 +1,7 @@
 import { Handle, Position } from 'reactflow'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { ComputedNode } from '../cpm/types'
+import { CRITICAL_BG } from './theme'
 import { formatWorkdayToDate } from '../cpm/workdays'
 
 interface TaskData {
@@ -30,7 +31,7 @@ function TaskNodeBase({ data }: { data: TaskData }) {
         display: 'inline-block',
         minWidth: 180,
         textAlign: 'center',
-        background: '#fff',
+        background: data.computed?.critical ? CRITICAL_BG : '#fff',
         border: '2px solid #d4d4d8',
         borderRadius: 8,
         boxShadow: '0 1px 3px rgba(0,0,0,.12)',
