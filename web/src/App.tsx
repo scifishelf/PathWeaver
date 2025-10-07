@@ -1,19 +1,18 @@
-import { useState } from 'react'
-import { HelpOverlay } from './components/HelpOverlay'
-import { Button } from './components/Button'
+// import { useState } from 'react'
+// import { HelpOverlay } from './components/HelpOverlay'
+// import { Button } from './components/Button'
 import { GraphCanvas } from './components/GraphCanvas'
 // Toolbar wird innerhalb des Canvas platziert
-import { BUILD_STAMP } from './buildStamp'
 
 export default function App() {
-  const [helpOpen, setHelpOpen] = useState(false)
+  // const [helpOpen, setHelpOpen] = useState(false)
   return (
     <div className="min-h-screen">
       <header className="border-b">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">PathWeaver – Netzplan‑Tool (MVP) · {BUILD_STAMP}</h1>
+          <h1 className="text-2xl font-bold">PathWeaver – Netzplan‑Tool (MVP)</h1>
           <div className="flex items-center gap-3">
-            <Button onClick={() => setHelpOpen(true)}>Hilfe</Button>
+            {/* Hilfe temporär ausgeblendet */}
           </div>
         </div>
       </header>
@@ -22,7 +21,7 @@ export default function App() {
           <GraphCanvas />
         </div>
       </main>
-      <HelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
+      {/* <HelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} /> */}
     </div>
   )
 }

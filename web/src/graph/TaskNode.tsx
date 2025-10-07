@@ -1,6 +1,7 @@
 import { Handle, Position } from 'reactflow'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { ComputedNode } from '../cpm/types'
+import { formatWorkdayToDate } from '../cpm/workdays'
 
 interface TaskData {
   id: string
@@ -39,7 +40,7 @@ function TaskNodeBase({ data }: { data: TaskData }) {
       <Handle type="target" position={Position.Left} />
       <div style={{ padding: 8, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', rowGap: 4, columnGap: 6 }}>
         {/* Oberzeile: FB | Dauer | FA */}
-        <div style={{ textAlign: 'left' }}>{data.computed?.ES ?? '—'}</div>
+        <div style={{ textAlign: 'left' }}>{formatWorkdayToDate((data as any)?.startDate, data.computed?.ES)}</div>
         <div>
           <input
             type="number"
@@ -62,10 +63,10 @@ function TaskNodeBase({ data }: { data: TaskData }) {
             }}
           />
         </div>
-        <div style={{ textAlign: 'right' }}>{data.computed?.EF ?? '—'}</div>
+        <div style={{ textAlign: 'right' }}>{formatWorkdayToDate((data as any)?.startDate, data.computed?.EF)}</div>
 
         {/* Mitte: Name */}
-        <div style={{ gridColumn: '1 / span 3' }}>
+        <div style={{ gridColumn: '1 / span 3', display: 'flex', justifyContent: 'center' }}>
           <input
             type="text"
             value={title}
@@ -76,14 +77,15 @@ function TaskNodeBase({ data }: { data: TaskData }) {
               border: '1px solid #d4d4d8',
               borderRadius: 6,
               fontWeight: 600,
+              textAlign: 'center',
             }}
           />
         </div>
 
         {/* Unterzeile: LS | Schlupf | LA */}
-        <div style={{ textAlign: 'left' }}>{data.computed?.LS ?? '—'}</div>
+        <div style={{ textAlign: 'left' }}>{formatWorkdayToDate((data as any)?.startDate, data.computed?.LS)}</div>
         <div>{data.computed?.slack ?? '—'}</div>
-        <div style={{ textAlign: 'right' }}>{data.computed?.LF ?? '—'}</div>
+        <div style={{ textAlign: 'right' }}>{formatWorkdayToDate((data as any)?.startDate, data.computed?.LF)}</div>
       </div>
 
       <Handle type="source" position={Position.Right} />
