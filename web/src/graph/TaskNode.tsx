@@ -8,14 +8,23 @@ interface TaskData {
   id: string
   title?: string
   duration?: number
+  focusOnMount?: boolean
   computed?: ComputedNode
   onEdit?: (id: string, patch: Partial<{ title: string; duration: number }>) => void
 }
 
 function TaskNodeBase({ data }: { data: TaskData }) {
   const idRef = useRef(data.id)
+  const titleInputRef = useRef<HTMLInputElement>(null)
   const [title, setTitle] = useState<string>(data.title ?? data.id)
   const [duration, setDuration] = useState<number>(data.duration ?? 1)
+
+  // Auto-focus title input when node is first created via T-shortcut or FAB
+  useEffect(() => {
+    if (data.focusOnMount) {
+      titleInputRef.current?.focus()
+    }
+  }, []) // run once on mount — focusOnMount is a creation-time signal only
 
   // Debounce 200ms
   useEffect(() => {
@@ -69,6 +78,7 @@ function TaskNodeBase({ data }: { data: TaskData }) {
         {/* Mitte: Name */}
         <div style={{ gridColumn: '1 / span 3', display: 'flex', justifyContent: 'center' }}>
           <input
+            ref={titleInputRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}

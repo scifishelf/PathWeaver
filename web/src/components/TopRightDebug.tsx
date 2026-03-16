@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 export function TopRightDebug() {
+  if (!import.meta.env.DEV) return null
   const [counter, setCounter] = useState(0)
   const [time, setTime] = useState('')
   useEffect(() => {
