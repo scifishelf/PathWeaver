@@ -1,7 +1,7 @@
 import { Handle, Position } from 'reactflow'
 import { memo, useEffect, useRef, useState } from 'react'
 import type { ComputedNode } from '../cpm/types'
-import { CRITICAL_BG } from './theme'
+import { COLOR_BORDER, COLOR_ACCENT, COLOR_ACCENT_LIGHT, COLOR_BG, SHADOW_SM, RADIUS_MD, RADIUS_SM } from './theme'
 import { formatWorkdayToDate } from '../cpm/workdays'
 
 interface TaskData {
@@ -40,10 +40,10 @@ function TaskNodeBase({ data }: { data: TaskData }) {
         display: 'inline-block',
         minWidth: 180,
         textAlign: 'center',
-        background: data.computed?.critical ? CRITICAL_BG : '#fff',
-        border: '2px solid #d4d4d8',
-        borderRadius: 8,
-        boxShadow: '0 1px 3px rgba(0,0,0,.12)',
+        background: data.computed?.critical ? COLOR_ACCENT_LIGHT : COLOR_BG,
+        border: `2px solid ${data.computed?.critical ? COLOR_ACCENT : COLOR_BORDER}`,
+        borderRadius: RADIUS_MD,
+        boxShadow: SHADOW_SM,
         fontSize: 12,
       }}
     >
@@ -67,8 +67,8 @@ function TaskNodeBase({ data }: { data: TaskData }) {
             style={{
               width: '60px',
               padding: '2px 4px',
-              border: '1px solid #d4d4d8',
-              borderRadius: 6,
+              border: `1px solid ${COLOR_BORDER}`,
+              borderRadius: RADIUS_SM,
               textAlign: 'center',
             }}
           />
@@ -85,8 +85,8 @@ function TaskNodeBase({ data }: { data: TaskData }) {
             style={{
               width: '100%',
               padding: '4px 6px',
-              border: '1px solid #d4d4d8',
-              borderRadius: 6,
+              border: `1px solid ${COLOR_BORDER}`,
+              borderRadius: RADIUS_SM,
               fontWeight: 600,
               textAlign: 'center',
             }}
