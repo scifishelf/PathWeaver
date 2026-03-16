@@ -52,20 +52,20 @@
 
 ### UI-TOOLBAR — Toolbar Redesign
 
-- [ ] **UI-TOOLBAR-01**: Toolbar-Buttons mit Icons ausgestattet (z.B. Lucide-Icons) — Text bleibt als Label, Icon gibt visuellen Anker
-- [ ] **UI-TOOLBAR-02**: Toolbar-Aktionen visuell gruppiert mit Separator: `[Export | Import]` · `[Snapshots | PNG]`
-- [ ] **UI-TOOLBAR-03**: Hover- und `focus-visible`-Styles auf allen interaktiven Elementen (Toolbar-Buttons, Node-Inputs, Context-Menu-Einträge)
+- [x] **UI-TOOLBAR-01**: Toolbar-Buttons mit Icons ausgestattet (z.B. Lucide-Icons) — Text bleibt als Label, Icon gibt visuellen Anker
+- [x] **UI-TOOLBAR-02**: Toolbar-Aktionen visuell gruppiert mit Separator: `[Export | Import]` · `[Snapshots | PNG]`
+- [x] **UI-TOOLBAR-03**: Hover- und `focus-visible`-Styles auf allen interaktiven Elementen (Toolbar-Buttons, Node-Inputs, Context-Menu-Einträge)
 
 ### UI-CRIT — Kritischer Pfad Visualisierung
 
-- [ ] **UI-CRIT-01**: CP-Banner redesigned — klar von Node-Highlight-Farbe abgegrenzt; gut lesbar, visuell prominent
-- [ ] **UI-CRIT-02**: Kritische Nodes erhalten zusätzlichen Border-Highlight — nicht nur Hintergrundfarbe sondern auch farbiger Rand
+- [x] **UI-CRIT-01**: CP-Banner redesigned — klar von Node-Highlight-Farbe abgegrenzt; gut lesbar, visuell prominent
+- [x] **UI-CRIT-02**: Kritische Nodes erhalten zusätzlichen Border-Highlight — nicht nur Hintergrundfarbe sondern auch farbiger Rand
 
 ### UI-POLISH — Visual Polish
 
 - [ ] **UI-POLISH-01**: Datumformat durchgängig 4-stelliges Jahr (DD.MM.YYYY) in allen Node-Anzeigen und Banners
-- [ ] **UI-POLISH-02**: Ladeindikator während PNG-Export — User-Feedback während der 1–3s DOM-Rendering-Phase
-- [ ] **UI-POLISH-03**: Snapshot-Panel zeigt Namen der Snapshots (aus SNAP-01); Benennung beim Erstellen über Input-Feld möglich
+- [x] **UI-POLISH-02**: Ladeindikator während PNG-Export — User-Feedback während der 1–3s DOM-Rendering-Phase
+- [x] **UI-POLISH-03**: Snapshot-Panel zeigt Namen der Snapshots (aus SNAP-01); Benennung beim Erstellen über Input-Feld möglich
 
 ---
 
@@ -131,14 +131,14 @@
 | SNAP-02 | Phase 1 | Complete |
 | UI-FOUND-01 | Phase 2 | Complete |
 | UI-FOUND-02 | Phase 2 | Complete |
-| UI-TOOLBAR-01 | Phase 2 | Pending |
-| UI-TOOLBAR-02 | Phase 2 | Pending |
-| UI-TOOLBAR-03 | Phase 2 | Pending |
-| UI-CRIT-01 | Phase 2 | Pending |
-| UI-CRIT-02 | Phase 2 | Pending |
+| UI-TOOLBAR-01 | Phase 2 | Complete |
+| UI-TOOLBAR-02 | Phase 2 | Complete |
+| UI-TOOLBAR-03 | Phase 2 | Complete |
+| UI-CRIT-01 | Phase 2 | Complete |
+| UI-CRIT-02 | Phase 2 | Complete |
 | UI-POLISH-01 | Phase 2 | Pending |
-| UI-POLISH-02 | Phase 2 | Pending |
-| UI-POLISH-03 | Phase 2 | Pending |
+| UI-POLISH-02 | Phase 2 | Complete |
+| UI-POLISH-03 | Phase 2 | Complete |
 
 **Coverage:**
 - v1 Requirements: 30 total
