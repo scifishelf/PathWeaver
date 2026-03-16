@@ -6,6 +6,8 @@ PathWeaver ist ein browserbasiertes CPM-Netzplan-Tool (Critical Path Method) nac
 
 Zielgruppe: Entwickler und Projektmanager, die ein schlankes, selbst gehostetes oder lokal nutzbares Planungstool suchen. Veröffentlichung als Open-Source-Projekt auf GitHub.
 
+Die App liest sich auf den ersten Blick als professionelles, produktionsreifes Tool — mit konsistenter Design-Sprache, Icon-basierter Toolbar und prominenter kritischer-Pfad-Visualisierung.
+
 ## Core Value
 
 Der kritische Pfad muss korrekt berechnet und klar sichtbar sein — alles andere ist sekundär.
@@ -21,35 +23,21 @@ Der kritische Pfad muss korrekt berechnet und klar sichtbar sein — alles ander
 - ✓ JSON-Export und -Import — existing
 - ✓ PNG-Export — existing
 - ✓ Startdatum wählbar, Arbeitstage-Berechnung (Mo–Fr) — existing
+- ✓ Node-IDs via `crypto.randomUUID()`, Snapshot-Keys mit Random-Suffix — v1.0
+- ✓ `QuotaExceededError` explizit abgefangen, SaveResult API, stille Catches eliminiert — v1.0
+- ✓ `dom-to-image-more` durch `html-to-image` ersetzt, Zustand + immer entfernt — v1.0
+- ✓ Discriminated Union für AppNodeData, isProjectJSON type guard, as-any-frei in serialize.ts — v1.0
+- ✓ Test-Suite: 44 Tests für Serialize, Validate, Workdays, CPM, Autosave — v1.0
+- ✓ App-Titel "PathWeaver" ohne "(MVP)"-Label — v1.0
+- ✓ 23-Token Design-System in theme.ts — null hardcodierte Hex-Werte in Komponenten — v1.0
+- ✓ Icon-basierte Toolbar (Lucide) mit visueller Gruppierung, hover/focus-visible — v1.0
+- ✓ CP-Banner und Node-Highlighting visuell klar abgegrenzt, farbiger Border auf kritischen Nodes — v1.0
+- ✓ Datumformat DD.MM.YYYY durchgängig (4-stelliges Jahr) — v1.0
+- ✓ PNG-Export mit Ladeindikator, Snapshot-Panel mit Benennung — v1.0
 
 ### Active
 
-#### Ziel 1 — Code-Qualität & Stabilität
-
-- [ ] Bugfix: Node-IDs auf `crypto.randomUUID()` umstellen (keine Timestamp-Kollisionen)
-- [ ] Bugfix: Snapshot-Keys mit Random-Suffix (keine Millisekunden-Kollisionen)
-- [ ] Bugfix: JSON-Import gegen `docs/json-schema.v1.json` validieren vor dem Parsen
-- [ ] Bugfix: `QuotaExceededError` in `autosave.ts` abfangen
-- [ ] Bugfix: `startDate`-Format vor Datums-Arithmetik validieren
-- [ ] Tech Debt: `dom-to-image-more` durch `html-to-image` ersetzen
-- [ ] Tech Debt: Zustand-Dependency entfernen oder korrekt adoptieren
-- [ ] Tech Debt: Silent catch blocks — mindestens `console.error` einbauen
-- [ ] Tech Debt: `TopRightDebug.tsx` hinter `import.meta.env.DEV` verstecken
-- [ ] Tech Debt: Kritische `as any`-Casts in `serialize.ts` durch Type Guards ersetzen
-- [ ] Tests: Serialisierungs-Round-Trip (`toProjectJSON` ↔ `fromProjectJSON`)
-- [ ] Tests: Graph-Validierungsregeln (`validate.ts`)
-- [ ] Tests: Workday-Arithmetik (`workdays.ts`)
-- [ ] Tests: CPM-Fehlerpfade & Edge-Cases (Zyklen, einzelner Knoten, disconnected Subgraph)
-
-#### Ziel 2 — UI: Clean & Professional
-
-- [ ] Header & Branding: "MVP" aus Titel entfernen, App-Name überarbeiten
-- [ ] Farben & Typografie: Konsistentes Design-System, Clean & Professional
-- [ ] Toolbar: Icons, Gruppierung, sauberes Layout (Export/Import/Snapshots/PNG)
-- [ ] Kritischer Pfad: Überarbeiteter Banner, deutlicheres Node-Highlighting
-- [ ] PNG-Export: Ladeindikator während DOM-Rendering (UI friert derzeit 1–3s ein)
-- [ ] Datumformat: Konsistenz (aktuell "06.10.25" vs "06.10.2025")
-- [ ] Vite-Template-Boilerplate entfernen (`vite.svg`, `react.svg`)
+*(Wird mit nächstem Milestone definiert — `/gsd:new-milestone`)*
 
 ### Out of Scope
 
@@ -59,14 +47,19 @@ Der kritische Pfad muss korrekt berechnet und klar sichtbar sein — alles ander
 - Node-Labels im DIN-Grid (FAZ/FEZ etc.) — Fachpublikum kennt das Format
 - Holiday-Kalender für Arbeitstags-Berechnung — v2
 - ReactFlow v12 Upgrade — Breaking Change, separates Milestone-Thema
-- Verschlüsselung von localStorage — kein sensitives Datenschutz-Risiko für diesen Use Case
+- Dark Mode — widerspricht DIN 69900 Weißhintergrund-Konvention
+- Multiple Color Themes / Theme Picker — Scope Creep
+- Animierte kritische-Pfad-Kanten — visuelles Risiko (Noise)
+- Node-Slack-Gradient-Visualisierung — zu hohe visuelle Komplexität für v1
 
 ## Context
 
-- Bestehende Codebase: ~1000 Zeilen Produktionscode, React 19 + TypeScript + ReactFlow 11 + Vite
+- Codebase: ~2.317 Zeilen TypeScript/TSX (v1.0)
+- Tech Stack: React 19 + TypeScript + ReactFlow 11 + Vite + Vitest + Tailwind CSS + Lucide React
 - Architektur: Saubere Schichttrennung (UI → Business Logic → Persistence), CPM vollständig von UI entkoppelt
-- Test-Coverage: Minimal (2 Test-Dateien: `compute.test.ts`, `App.test.tsx`)
-- Codebase-Map erstellt am 2026-03-16 unter `.planning/codebase/`
+- Test-Coverage: 44 Tests (serialize, validate, workdays, CPM, autosave) — alle passing
+- Design-System: 23 Named Tokens in `theme.ts`, konsistentes Color/Border/Shadow-System
+- Shipped: v1.0 am 2026-03-16 — Code-Qualität und UI-Polish abgeschlossen
 
 ## Constraints
 
@@ -79,10 +72,14 @@ Der kritische Pfad muss korrekt berechnet und klar sichtbar sein — alles ander
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| DIN 69900 Node-Layout beibehalten | Standardformat für Fachpublikum, keine Verwässerung | — Pending |
-| `html-to-image` statt `dom-to-image-more` | Unmaintained Fork, Security-Risiko | — Pending |
-| Zustand entfernen oder adoptieren | Aktuell installiert aber ungenutzt | — Pending |
-| Clean & Professional als UI-Richtung | Open Source GitHub-Projekt, erster Eindruck zählt | — Pending |
+| DIN 69900 Node-Layout beibehalten | Standardformat für Fachpublikum, keine Verwässerung | ✓ Good — unverändert in v1.0 |
+| `html-to-image` statt `dom-to-image-more` | Unmaintained Fork, Security-Risiko | ✓ Good — Migration sauber, filter-Callback funktioniert |
+| Zustand entfernen | Kein einziger Import im Produktionscode — tote Dependency | ✓ Good — entfernt in v1.0 |
+| Clean & Professional als UI-Richtung | Open Source GitHub-Projekt, erster Eindruck zählt | ✓ Good — Design-Token-System etabliert |
+| Discriminated Union für AppNodeData | Single cast at boundary, downstream type-safe | ✓ Good — enablet as-any-freie serialize.ts |
+| SaveResult API statt throws/swallows | Explizite Fehlerbehandlung ohne Exceptions | ✓ Good — QuotaExceededError surfaced |
+| CP Banner background '#eff6ff' (blue-50) ≠ CRITICAL_BG | Visuell klar abgegrenzt von Node-Highlight-Farbe | ✓ Good — CP Info vs. CP Node klar unterscheidbar |
+| TaskNode border-longhand statt border-shorthand | jsdom ignoriert Shorthand-Properties | ✓ Good — Tests stabil |
 
 ---
-*Last updated: 2026-03-16 after initialization*
+*Last updated: 2026-03-16 after v1.0 milestone*
