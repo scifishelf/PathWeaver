@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-03-16T13:50:34.384Z"
+stopped_at: Completed 01-05-PLAN.md
+last_updated: "2026-03-16T13:55:32.057Z"
 last_activity: 2026-03-16 — Roadmap created
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-code-quality-stability P01 | 3min | 3 tasks | 6 files |
 | Phase 01-code-quality-stability P04 | 2min | 1 tasks | 1 files |
 | Phase 01-code-quality-stability P03 | 3min | 1 tasks | 2 files |
+| Phase 01-code-quality-stability P05 | 8min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,7 @@ Recent decisions affecting current work:
 - [Phase 01-code-quality-stability]: QuotaExceededError caught explicitly with German copy; all catch blocks now log via console.error(e)
 - [Phase 01-code-quality-stability]: isProjectJSON delegates to validateProjectJSON — one validation implementation, two calling conventions (errors array vs boolean predicate)
 - [Phase 01-code-quality-stability]: fromProjectJSON placeholder handlers (onEdit/onChangeStartDate) required by interfaces but replaced by GraphCanvas after setNodes — never fire in practice
+- [Phase 01-code-quality-stability]: html-to-image filter must guard with instanceof Element; snapshot name clears after save; dom-to-image-more fully purged
 
 ### Pending Todos
 
@@ -86,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T13:50:34.381Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-03-16T13:55:32.055Z
+Stopped at: Completed 01-05-PLAN.md
 Resume file: None
