@@ -13,7 +13,7 @@ PathWeaver ships in two phases. Phase 1 hardens the codebase: eliminating silent
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Code Quality & Stability** - Hardened codebase with honest types, surfaced errors, and a test suite covering core business logic (completed 2026-03-16)
-- [x] **Phase 2: UI — Clean & Professional** - Professional visual redesign with consistent design tokens, polished toolbar, and clear critical path emphasis (completed 2026-03-16)
+- [ ] **Phase 2: UI — Clean & Professional** - Professional visual redesign with consistent design tokens, polished toolbar, and clear critical path emphasis (gap closure in progress)
 
 ## Phase Details
 
@@ -48,13 +48,14 @@ Plans:
   3. The toolbar shows icon + label buttons visually grouped by function (Export/Import separated from Snapshots/PNG) with hover and focus-visible states on all interactive elements
   4. Critical path nodes have both a background fill and a colored border; the CP info banner is visually distinct from node highlights and clearly readable
   5. All dates display in DD.MM.YYYY format; PNG export shows a loading indicator during the 1–3 second render; snapshot panel allows naming snapshots at creation time
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
 - [ ] 02-01-PLAN.md — Foundation: expand theme.ts to full token system, remove (MVP) from App.tsx title
 - [ ] 02-02-PLAN.md — Toolbar: ghost Button variant, AppToolbar icon+label buttons, PNG loading state
 - [ ] 02-03-PLAN.md — Graph layer: token-migrate TaskNode/StartNode/EndNode, restyle CP banner, ContextMenu focus-visible
 - [ ] 02-04-PLAN.md — Polish: fix 2-digit year bug in workdays.ts, create TaskNode.test.tsx
+- [ ] 02-05-PLAN.md — Gap closure: tokenize remaining hardcoded hex in GraphCanvas.tsx and AppToolbar.tsx (UI-FOUND-02)
 
 ## Progress
 
@@ -64,4 +65,4 @@ Phases execute in numeric order: 1 → 2
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Code Quality & Stability | 7/7 | Complete   | 2026-03-16 |
-| 2. UI — Clean & Professional | 4/4 | Complete   | 2026-03-16 |
+| 2. UI — Clean & Professional | 4/5 | In Progress | — |
