@@ -35,7 +35,7 @@ export function StartNode({ data }: { data: { label: string; startDate?: string;
           border: `1px solid ${COLOR_BORDER}`,
           borderRadius: RADIUS_SM,
           fontSize: 12,
-          background: '#fff',
+          background: COLOR_BG,
         }}
         title="Projekt-Startdatum"
       />
