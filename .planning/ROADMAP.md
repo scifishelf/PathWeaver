@@ -27,7 +27,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `autosave.ts` surfaces `QuotaExceededError` to the caller instead of swallowing it silently; no empty `catch {}` blocks remain anywhere in the codebase
   4. `zustand` and `dom-to-image-more` are absent from `package.json`; `html-to-image` is the active PNG library; no `.d.ts` stub remains
   5. Node IDs are generated via `crypto.randomUUID()`, snapshot keys carry a random suffix, and `TopRightDebug` does not appear in production builds
-**Plans**: TBD
+**Plans**: 7 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Foundation: remove dead deps (zustand/immer), install html-to-image, add AppNodeData discriminated union, fix json-schema.v1.json
+- [ ] 01-02-PLAN.md — Test scaffolds: create all missing test files with it.todo stubs (Nyquist compliance)
+- [ ] 01-03-PLAN.md — serialize.ts: replace 6 as-any casts with AppNodeData narrowing, add isProjectJSON type guard
+- [ ] 01-04-PLAN.md — autosave.ts: SaveResult API, QuotaExceededError handling, random snapshot keys, name?: string support
+- [ ] 01-05-PLAN.md — AppToolbar.tsx: html-to-image migration + panel filter for clean PNG, snapshot name input UI
+- [ ] 01-06-PLAN.md — GraphCanvas.tsx: fix empty catches, remove setTimeouts, UUID node IDs, T-shortcut, startDate validation, SaveResult banner
+- [ ] 01-07-PLAN.md — Tests: implement all it.todo stubs green (TEST-01..04, ERR-02/03, BUG-01/02, SNAP-01)
 
 ### Phase 2: UI — Clean & Professional
 **Goal**: PathWeaver reads as a professional, production-ready tool on first open — with a consistent design language, an icon-based toolbar, prominent critical path emphasis, and no prototype-era artifacts.
@@ -48,5 +57,5 @@ Phases execute in numeric order: 1 → 2
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Code Quality & Stability | 0/TBD | Not started | - |
+| 1. Code Quality & Stability | 0/7 | Ready to execute | - |
 | 2. UI — Clean & Professional | 0/TBD | Not started | - |
