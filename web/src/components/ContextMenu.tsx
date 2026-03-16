@@ -25,7 +25,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       {items.map((it, idx) => (
         <button
           key={idx}
-          className="block w-full text-left px-3 py-2 hover:bg-neutral-50 disabled:text-neutral-400"
+          className="block w-full text-left px-3 py-2 hover:bg-neutral-50 disabled:text-neutral-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
           onClick={it.onClick}
           disabled={it.disabled}
         >

@@ -11,7 +11,7 @@ import { ContextMenu } from './ContextMenu'
 import { validateGraph } from '../graph/validate'
 import { computeCPM } from '../cpm/compute'
 import { AppToolbar } from './AppToolbar'
-import { CRITICAL_BG } from '../graph/theme'
+import { COLOR_ACCENT, RADIUS_MD, SHADOW_SM } from '../graph/theme'
 import { toProjectJSON, fromProjectJSON } from '../persistence/serialize'
 import { saveCurrent, loadCurrent, type SaveResult } from '../persistence/autosave'
 
@@ -322,18 +322,17 @@ function GraphCanvasInner() {
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 10000,
-            background: CRITICAL_BG,
-            border: '1px solid #bfdbfe',
-            borderRadius: 8,
-            padding: '6px 12px',
+            background: '#eff6ff',
+            color: '#1d4ed8',
+            border: `1px solid ${COLOR_ACCENT}`,
+            borderRadius: RADIUS_MD,
+            padding: '8px 16px',
             fontSize: 12,
-            boxShadow: '0 2px 8px rgba(37,99,235,.15)'
+            fontWeight: 400,
+            boxShadow: SHADOW_SM,
           }}
         >
-          <span>
-            Kritischer Pfad: {cp.criticalPath.join(' → ')} · Dauer {cp.project.durationAT} AT
-            {cp.project.earliestFinishISO ? ` · Ende ${cp.project.earliestFinishISO.slice(8,10)}.${cp.project.earliestFinishISO.slice(5,7)}.${cp.project.earliestFinishISO.slice(2,4)}` : ''}
-          </span>
+          ◆ Kritischer Pfad: {cp.project.durationAT} Arbeitstage
         </div>
       )}
       {errors.length > 0 && (
