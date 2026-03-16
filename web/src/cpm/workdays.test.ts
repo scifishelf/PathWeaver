@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { addWorkdays, nextWorkday, isWeekend } from './workdays'
+import { addWorkdays, nextWorkday, isWeekend, formatDateShort } from './workdays'
 
 describe('isWeekend', () => {
   it('returns true for Saturday (day 6)', () => {
@@ -44,5 +44,20 @@ describe('addWorkdays (TEST-03)', () => {
     const result = addWorkdays(invalidDate, 3)
     // Should return a Date (even if invalid/NaN) without throwing or hanging
     expect(result instanceof Date).toBe(true)
+  })
+})
+
+describe('formatDateShort (UI-POLISH-01)', () => {
+  it('returns DD.MM.YYYY with 4-digit year', () => {
+    const d = new Date('2026-03-16')
+    expect(formatDateShort(d)).toBe('16.03.2026')
+  })
+  it('does not return 2-digit year', () => {
+    const d = new Date('2026-03-16')
+    expect(formatDateShort(d)).not.toBe('16.03.26')
+  })
+  it('handles year 2000 correctly', () => {
+    const d = new Date('2000-01-01')
+    expect(formatDateShort(d)).toBe('01.01.2000')
   })
 })

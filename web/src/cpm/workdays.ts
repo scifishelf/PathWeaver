@@ -28,8 +28,8 @@ function pad2(n: number): string {
 export function formatDateShort(d: Date): string {
   const dd = pad2(d.getDate())
   const mm = pad2(d.getMonth() + 1)
-  const yy = pad2(d.getFullYear() % 100)
-  return `${dd}.${mm}.${yy}`
+  const yyyy = d.getFullYear()
+  return `${dd}.${mm}.${yyyy}`
 }
 
 // Formatiert eine Arbeitstag-Offset (ab Projektstart) zu TT.MM.JJ
