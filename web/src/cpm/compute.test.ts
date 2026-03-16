@@ -58,4 +58,11 @@ describe('computeCPM', () => {
   })
 })
 
+describe('computeCPM — edge cases (TEST-04)', () => {
+  it.todo('single node graph (start + end only, no tasks) returns durationAT of 0')
+  it.todo('disconnected subgraph throws ComputeError with code ORPHAN')
+  it.todo('pure cycle (no start→end path) throws ComputeError with code CYCLE or START_HAS_INCOMING')
+  it.todo('ComputeError has a .code property matching ComputeErrorCode type')
+})
+
 
