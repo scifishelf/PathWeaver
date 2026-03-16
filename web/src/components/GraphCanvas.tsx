@@ -11,7 +11,7 @@ import { ContextMenu } from './ContextMenu'
 import { validateGraph } from '../graph/validate'
 import { computeCPM } from '../cpm/compute'
 import { AppToolbar } from './AppToolbar'
-import { COLOR_ACCENT, RADIUS_MD, SHADOW_SM } from '../graph/theme'
+import { COLOR_ACCENT, COLOR_BG, RADIUS_MD, SHADOW_SM, COLOR_CANVAS_BG, COLOR_ERROR, COLOR_ERROR_BG, COLOR_ERROR_BORDER, COLOR_WARNING_BG, COLOR_WARNING_BORDER, COLOR_WARNING_TEXT, COLOR_FAB, COLOR_FAB_BORDER } from '../graph/theme'
 import { toProjectJSON, fromProjectJSON } from '../persistence/serialize'
 import { saveCurrent, loadCurrent, type SaveResult } from '../persistence/autosave'
 
@@ -213,7 +213,7 @@ function GraphCanvasInner() {
     return nodes.map((n) => {
       const baseStyle: any = n.style ? { ...n.style } : {}
       if (orphan.has(n.id) || nodesWithTooManyOut.has(n.id)) {
-        baseStyle.border = '2px solid #ef4444'
+        baseStyle.border = `2px solid ${COLOR_ERROR}`
         baseStyle.boxShadow = '0 1px 3px rgba(239,68,68,.3)'
       }
       // Kritische Knoten nicht mehr über Border markieren; Hintergrund übernimmt jeweilige Node-Komponente
@@ -243,10 +243,10 @@ function GraphCanvasInner() {
       const onCp = cpPairs.has(e.source + '→' + e.target)
       const style: any = e.style ? { ...e.style } : {}
       if (invalid) {
-        style.stroke = '#ef4444'
+        style.stroke = COLOR_ERROR
         style.strokeWidth = 2
       } else if (onCp) {
-        style.stroke = '#2563eb'
+        style.stroke = COLOR_ACCENT
         style.strokeWidth = 3
       }
       return { ...e, style }
@@ -254,7 +254,7 @@ function GraphCanvasInner() {
   }, [edges, errors, nodesWithTooManyOut, startId, cp])
 
   return (
-    <div className="w-full h-full relative" style={{ width: '100%', height: '100%', background: '#eef2f7' }}>
+    <div className="w-full h-full relative" style={{ width: '100%', height: '100%', background: COLOR_CANVAS_BG }}>
       <ReactFlow
         nodes={styledNodes}
         edges={styledEdges}
@@ -297,13 +297,13 @@ function GraphCanvasInner() {
               height: 45,
               width: 45,
               borderRadius: 9999,
-              background: '#16a34a',
-              color: '#fff',
+              background: COLOR_FAB,
+              color: COLOR_BG,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 8px 20px rgba(0,0,0,.25)',
-              border: '2px solid #065f46',
+              border: `2px solid ${COLOR_FAB_BORDER}`,
               cursor: 'pointer',
             }}
           >
@@ -348,8 +348,8 @@ function GraphCanvasInner() {
           }}
         >
           <div style={{
-            background: '#fee2e2',
-            border: '1px solid #fecaca',
+            background: COLOR_ERROR_BG,
+            border: `1px solid ${COLOR_ERROR_BORDER}`,
             borderRadius: 8,
             padding: 12
           }}>
@@ -374,12 +374,12 @@ function GraphCanvasInner() {
           }}
         >
           <div style={{
-            background: '#fefce8',
-            border: '1px solid #fef08a',
+            background: COLOR_WARNING_BG,
+            border: `1px solid ${COLOR_WARNING_BORDER}`,
             borderRadius: 8,
             padding: 12,
             fontSize: 12,
-            color: '#854d0e',
+            color: COLOR_WARNING_TEXT,
           }}>
             {quotaError}
           </div>

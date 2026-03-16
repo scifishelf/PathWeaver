@@ -6,7 +6,7 @@ import { Button } from './Button'
 import { toPng } from 'html-to-image'
 import { Download, Upload, Layers, Image, Loader2 } from 'lucide-react'
 import type { Edge, Node } from 'reactflow'
-import { COLOR_SURFACE, COLOR_BORDER, COLOR_BG, RADIUS_MD, SHADOW_SM, SHADOW_MD } from '../graph/theme'
+import { COLOR_SURFACE, COLOR_BORDER, COLOR_BG, COLOR_TEXT_MUTED, RADIUS_MD, SHADOW_SM, SHADOW_MD } from '../graph/theme'
 
 interface Props {
   nodes: Node[]
@@ -79,7 +79,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
       `
       document.head.appendChild(style)
       const dataUrl = await toPng(el, {
-        backgroundColor: '#ffffff',
+        backgroundColor: COLOR_BG,
         filter: (node) => {
           if (!(node instanceof Element)) return true
           const cls = node.classList
@@ -193,7 +193,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
               </div>
             </div>
             {snaps.length === 0 ? (
-              <div style={{ fontSize: 12, color: '#6b7280' }}>Keine Snapshots</div>
+              <div style={{ fontSize: 12, color: COLOR_TEXT_MUTED }}>Keine Snapshots</div>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflowY: 'auto' }}>
                 {snaps.map((s) => (
