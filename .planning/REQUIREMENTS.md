@@ -9,14 +9,14 @@
 
 ### DEPS — Dependency-Bereinigung
 
-- [ ] **DEPS-01**: Zustand-Dependency aus `package.json` entfernt (kein einziger `import from 'zustand'` im Quellcode)
+- [x] **DEPS-01**: Zustand-Dependency aus `package.json` entfernt (kein einziger `import from 'zustand'` im Quellcode)
 - [ ] **DEPS-02**: `dom-to-image-more` durch `html-to-image` ersetzt — Import umbenannt, `.d.ts`-Stub gelöscht, `bgcolor` → `backgroundColor` Option angepasst
-- [ ] **DEPS-03**: Immer-Nutzung geprüft; Dependency entfernt wenn keine Imports vorhanden
+- [x] **DEPS-03**: Immer-Nutzung geprüft; Dependency entfernt wenn keine Imports vorhanden
 
 ### TYPES — Type Safety
 
 - [ ] **TYPES-01**: `isProjectJSON`-Type-Guard an der `JSON.parse()`-Grenze in `serialize.ts` — gibt `boolean` zurück, typed als `data is ProjectJSON`
-- [ ] **TYPES-02**: Discriminated Union für ReactFlow Node-Daten (`TaskNodeData | StartNodeData | EndNodeData`) eingeführt — ein Cast an der Grenze, downstream durchgängig typisiert
+- [x] **TYPES-02**: Discriminated Union für ReactFlow Node-Daten (`TaskNodeData | StartNodeData | EndNodeData`) eingeführt — ein Cast an der Grenze, downstream durchgängig typisiert
 - [ ] **TYPES-03**: `as any`-Casts in `serialize.ts` durch Type Guards / Narrowing ersetzt
 
 ### ERR — Error Handling
@@ -109,11 +109,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEPS-01 | Phase 1 | Pending |
+| DEPS-01 | Phase 1 | Complete |
 | DEPS-02 | Phase 1 | Pending |
-| DEPS-03 | Phase 1 | Pending |
+| DEPS-03 | Phase 1 | Complete |
 | TYPES-01 | Phase 1 | Pending |
-| TYPES-02 | Phase 1 | Pending |
+| TYPES-02 | Phase 1 | Complete |
 | TYPES-03 | Phase 1 | Pending |
 | ERR-01 | Phase 1 | Pending |
 | ERR-02 | Phase 1 | Pending |
