@@ -10,7 +10,7 @@
 ### DEPS — Dependency-Bereinigung
 
 - [x] **DEPS-01**: Zustand-Dependency aus `package.json` entfernt (kein einziger `import from 'zustand'` im Quellcode)
-- [ ] **DEPS-02**: `dom-to-image-more` durch `html-to-image` ersetzt — Import umbenannt, `.d.ts`-Stub gelöscht, `bgcolor` → `backgroundColor` Option angepasst
+- [x] **DEPS-02**: `dom-to-image-more` durch `html-to-image` ersetzt — Import umbenannt, `.d.ts`-Stub gelöscht, `bgcolor` → `backgroundColor` Option angepasst
 - [x] **DEPS-03**: Immer-Nutzung geprüft; Dependency entfernt wenn keine Imports vorhanden
 
 ### TYPES — Type Safety
@@ -31,7 +31,7 @@
 - [x] **BUG-02**: Snapshot-Keys erhalten Random-Suffix — keine Millisekunden-Kollisionen mehr
 - [ ] **BUG-03**: `setTimeout`-basierte Validierungsaufrufe in `GraphCanvas.tsx` entfernt; Validierung läuft ausschließlich über `useEffect([nodes, edges])`
 - [ ] **BUG-04**: `TopRightDebug.tsx` hinter `import.meta.env.DEV` versteckt — wird in Production-Build nicht mitgeliefert
-- [ ] **BUG-05**: PNG-Export via `html-to-image` mit `filter`-Option — `.react-flow__controls`, `.react-flow__panel`, `.react-flow__minimap` werden aus dem exportierten Bild ausgeschlossen
+- [x] **BUG-05**: PNG-Export via `html-to-image` mit `filter`-Option — `.react-flow__controls`, `.react-flow__panel`, `.react-flow__minimap` werden aus dem exportierten Bild ausgeschlossen
 
 ### TEST — Test Coverage
 
@@ -110,7 +110,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DEPS-01 | Phase 1 | Complete |
-| DEPS-02 | Phase 1 | Pending |
+| DEPS-02 | Phase 1 | Complete |
 | DEPS-03 | Phase 1 | Complete |
 | TYPES-01 | Phase 1 | Complete |
 | TYPES-02 | Phase 1 | Complete |
@@ -122,7 +122,7 @@
 | BUG-02 | Phase 1 | Complete |
 | BUG-03 | Phase 1 | Pending |
 | BUG-04 | Phase 1 | Pending |
-| BUG-05 | Phase 1 | Pending |
+| BUG-05 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Complete |
 | TEST-03 | Phase 1 | Complete |
