@@ -36,7 +36,7 @@ Declared values (multiples of 4 only):
 |-------|-------|-------|
 | xs | 4px | Icon-to-label gap inside buttons (`gap-2` = 8px in Tailwind; use 4px for icon-internal gaps) |
 | sm | 8px | Toolbar inner padding horizontal (`px-2`), separator margin (`margin: '0 4px'`) |
-| md | 16px | Banner horizontal padding (`padding: '6px 16px'`), header section padding |
+| md | 16px | Banner horizontal padding (`padding: '8px 16px'`), header section padding |
 | lg | 24px | Main canvas vertical padding (`py-6`) |
 | xl | 32px | — reserved |
 | 2xl | 48px | — reserved |
@@ -44,7 +44,7 @@ Declared values (multiples of 4 only):
 
 Exceptions:
 - Toolbar wrapper padding: `4px 8px` (xs vertical, sm horizontal) — tighter than standard `md` to keep toolbar compact
-- Banner vertical padding: `6px` — between xs and sm; intentional compact treatment for the info strip
+- Banner vertical padding: `8px` — compact treatment for the info strip, aligns to grid
 - Touch targets: not applicable (desktop-only tool; no mobile requirement per REQUIREMENTS.md Out of Scope)
 
 *Source: CONTEXT.md + RESEARCH.md Pattern 4 (toolbar) and Pattern 5 (banner)*
@@ -56,15 +56,16 @@ Exceptions:
 | Role | Size | Weight | Line Height | Usage |
 |------|------|--------|-------------|-------|
 | Body | 14px | 400 (regular) | 1.5 | Node inputs, panel text, snapshot list items |
-| Label | 12px | 500 (medium) | 1.4 | Toolbar button text (`text-sm` = 14px in Tailwind; banner text at 12px) |
+| Label | 12px | 400 (regular) | 1.4 | Toolbar button text (`text-sm` = 14px in Tailwind; banner text at 12px) |
 | Heading | 20px | 700 (bold) | 1.2 | App header `h1` (currently `text-3xl` — retain Tailwind class; visual hierarchy unchanged) |
 | Display | 30px | 700 (bold) | 1.2 | App header only (`text-3xl` = 30px) |
 
 Precision rules:
 - Toolbar buttons: `text-sm` (14px) at weight 400 — rendered via Tailwind on `Button.tsx`
-- CP banner: 12px at weight 500 — via inline `fontSize: 12, fontWeight: 500`
+- CP banner: 12px at weight 400 — via inline `fontSize: 12, fontWeight: 400`
 - Node task labels: 14px at weight 400 — existing inline style in TaskNode.tsx (retain)
 - App `h1`: Tailwind `text-3xl font-bold` (30px / 700) — retain existing class after removing `<big>` wrapper
+- Label role at 12px achieves visual distinction through size alone; medium weight (500) is redundant and dropped
 
 *Source: RESEARCH.md Standard Stack section; CONTEXT.md button style `text-sm`; existing App.tsx Tailwind classes*
 
@@ -180,7 +181,7 @@ Do NOT add `ghost` to the existing base `focus:ring-2` — the ghost variant rep
 ### `web/src/components/GraphCanvas.tsx` — RESTYLE
 
 - CP banner: restyle existing inline `<div>` block (lines 317–337). Do NOT use Banner.tsx component.
-- Banner `style`: `background: '#eff6ff'`, `color: '#1d4ed8'`, `border: 1px solid COLOR_ACCENT`, `borderRadius: RADIUS_MD`, `padding: '6px 16px'`, `fontSize: 12`, `fontWeight: 500`, `boxShadow: SHADOW_SM`
+- Banner `style`: `background: '#eff6ff'`, `color: '#1d4ed8'`, `border: 1px solid COLOR_ACCENT`, `borderRadius: RADIUS_MD`, `padding: '8px 16px'`, `fontSize: 12`, `fontWeight: 400`, `boxShadow: SHADOW_SM`
 - Banner copy: `◆ Kritischer Pfad: {cp.project.durationAT} Arbeitstage` (duration only)
 - Replace any remaining hardcoded hex values with token imports
 
