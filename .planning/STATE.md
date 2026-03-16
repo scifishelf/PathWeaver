@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-16T15:29:52.418Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-03-16T15:33:54.863Z"
 last_activity: 2026-03-16 — Roadmap created
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 10
   percent: 0
 ---
 
@@ -58,6 +58,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-code-quality-stability P06 | 5min | 2 tasks | 3 files |
 | Phase 01-code-quality-stability P07 | 9min | 2 tasks | 5 files |
 | Phase 02-ui-clean-professional P01 | 2min | 2 tasks | 3 files |
+| Phase 02-ui-clean-professional P03 | 2min | 2 tasks | 5 files |
+| Phase 02-ui-clean-professional P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -83,6 +85,10 @@ Recent decisions affecting current work:
 - [Phase 01-code-quality-stability]: idRef counter and getNextTaskId removed entirely; crypto.randomUUID() eliminates all N{num} collision concerns
 - [Phase 01-code-quality-stability]: Missing-connection test covers start-has-incoming rule (validateGraph does not flag dead-end nodes separately)
 - [Phase 02-ui-clean-professional]: CRITICAL_BG retained as backward-compat alias to COLOR_ACCENT_LIGHT; CRITICAL_BORDER added as COLOR_ACCENT alias for Phase 2 node border use
+- [Phase 02-ui-clean-professional]: CP banner background '#eff6ff' (blue-50) distinct from COLOR_ACCENT_LIGHT '#dbeafe' (node fill) — different values by design; locked banner format shows only duration
+- [Phase 02-ui-clean-professional]: StartNode/EndNode use COLOR_BG (not CRITICAL_BG) — applying CRITICAL_BG to all start/end nodes was a semantic bug; only task nodes appear on CP
+- [Phase 02-ui-clean-professional]: Ghost variant uses focus-visible: not focus: — avoids keyboard-style ring on mouse click
+- [Phase 02-ui-clean-professional]: Snapshot dropdown internal buttons (Neu, Laden, Löschen) kept as plain button elements — out of scope per plan
 
 ### Pending Todos
 
@@ -96,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:29:52.416Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-16T15:33:54.862Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None
