@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { validateProjectJSON } from './serialize'
+import { validateProjectJSON, isProjectJSON } from './serialize'
 import type { ProjectJSON } from '../cpm/types'
 
 describe('serialize round-trip (TEST-01)', () => {
@@ -9,11 +9,26 @@ describe('serialize round-trip (TEST-01)', () => {
 })
 
 describe('isProjectJSON type guard (TYPES-01)', () => {
-  it.todo('returns true for valid ProjectJSON with nodes and edges')
-  it.todo('returns false for null')
-  it.todo('returns false for object missing nodes array')
-  it.todo('returns false for object missing edges array')
-  it.todo('returns false for settings.version !== "1.0"')
+  it('returns true for valid ProjectJSON with nodes and edges', () => {
+    const valid: ProjectJSON = {
+      settings: { version: '1.0' },
+      nodes: [{ id: 'start', type: 'start' }, { id: 'end', type: 'end' }],
+      edges: [],
+    }
+    expect(isProjectJSON(valid)).toBe(true)
+  })
+  it('returns false for null', () => {
+    expect(isProjectJSON(null)).toBe(false)
+  })
+  it('returns false for object missing nodes array', () => {
+    expect(isProjectJSON({ edges: [] })).toBe(false)
+  })
+  it('returns false for object missing edges array', () => {
+    expect(isProjectJSON({ nodes: [{ id: 'start', type: 'start' }, { id: 'end', type: 'end' }] })).toBe(false)
+  })
+  it('returns false for settings.version !== "1.0"', () => {
+    expect(isProjectJSON({ settings: { version: '2.0' }, nodes: [{ id: 'start', type: 'start' }, { id: 'end', type: 'end' }], edges: [] })).toBe(false)
+  })
 })
 
 describe('validateProjectJSON (existing — regression guard)', () => {
