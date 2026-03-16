@@ -23,14 +23,14 @@
 
 - [x] **ERR-01**: Alle leeren `catch {}` Blöcke in `autosave.ts` und `GraphCanvas.tsx` erhalten mindestens `console.error(e)` — keine stillen Fehler mehr
 - [x] **ERR-02**: `QuotaExceededError` in `autosave.ts` explizit abgefangen (`instanceof DOMException && name === 'QuotaExceededError'`); `saveCurrent()` gibt strukturiertes `SaveResult` zurück
-- [ ] **ERR-03**: `startDate` vor Übergabe an `workdays.ts` auf valides ISO-Datumsformat validiert — verhindert Infinite Loop in `addWorkdays()`
+- [x] **ERR-03**: `startDate` vor Übergabe an `workdays.ts` auf valides ISO-Datumsformat validiert — verhindert Infinite Loop in `addWorkdays()`
 
 ### BUG — Bug Fixes
 
-- [ ] **BUG-01**: Node-IDs durch `crypto.randomUUID()` generiert statt Timestamp-basiert
+- [x] **BUG-01**: Node-IDs durch `crypto.randomUUID()` generiert statt Timestamp-basiert
 - [x] **BUG-02**: Snapshot-Keys erhalten Random-Suffix — keine Millisekunden-Kollisionen mehr
-- [ ] **BUG-03**: `setTimeout`-basierte Validierungsaufrufe in `GraphCanvas.tsx` entfernt; Validierung läuft ausschließlich über `useEffect([nodes, edges])`
-- [ ] **BUG-04**: `TopRightDebug.tsx` hinter `import.meta.env.DEV` versteckt — wird in Production-Build nicht mitgeliefert
+- [x] **BUG-03**: `setTimeout`-basierte Validierungsaufrufe in `GraphCanvas.tsx` entfernt; Validierung läuft ausschließlich über `useEffect([nodes, edges])`
+- [x] **BUG-04**: `TopRightDebug.tsx` hinter `import.meta.env.DEV` versteckt — wird in Production-Build nicht mitgeliefert
 - [x] **BUG-05**: PNG-Export via `html-to-image` mit `filter`-Option — `.react-flow__controls`, `.react-flow__panel`, `.react-flow__minimap` werden aus dem exportierten Bild ausgeschlossen
 
 ### TEST — Test Coverage
@@ -43,7 +43,7 @@
 ### SNAP — Snapshot-Verbesserungen
 
 - [x] **SNAP-01**: Snapshots können optional benannt werden — `name?: string` im Snapshot-Schema; Benennung ist optional, nicht required
-- [ ] **SNAP-02**: Taste `T` fügt neuen Task-Node hinzu — `keydown`-Listener in `GraphCanvas.tsx` mit `useEffect`; deaktiviert wenn Fokus in einem Input-Feld liegt
+- [x] **SNAP-02**: Taste `T` fügt neuen Task-Node hinzu — `keydown`-Listener in `GraphCanvas.tsx` mit `useEffect`; deaktiviert wenn Fokus in einem Input-Feld liegt
 
 ### UI-FOUND — UI Foundation
 
@@ -117,18 +117,18 @@
 | TYPES-03 | Phase 1 | Complete |
 | ERR-01 | Phase 1 | Complete |
 | ERR-02 | Phase 1 | Complete |
-| ERR-03 | Phase 1 | Pending |
-| BUG-01 | Phase 1 | Pending |
+| ERR-03 | Phase 1 | Complete |
+| BUG-01 | Phase 1 | Complete |
 | BUG-02 | Phase 1 | Complete |
-| BUG-03 | Phase 1 | Pending |
-| BUG-04 | Phase 1 | Pending |
+| BUG-03 | Phase 1 | Complete |
+| BUG-04 | Phase 1 | Complete |
 | BUG-05 | Phase 1 | Complete |
 | TEST-01 | Phase 1 | Complete |
 | TEST-02 | Phase 1 | Complete |
 | TEST-03 | Phase 1 | Complete |
 | TEST-04 | Phase 1 | Complete |
 | SNAP-01 | Phase 1 | Complete |
-| SNAP-02 | Phase 1 | Pending |
+| SNAP-02 | Phase 1 | Complete |
 | UI-FOUND-01 | Phase 2 | Pending |
 | UI-FOUND-02 | Phase 2 | Pending |
 | UI-TOOLBAR-01 | Phase 2 | Pending |
