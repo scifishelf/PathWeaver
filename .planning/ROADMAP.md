@@ -12,7 +12,7 @@ PathWeaver ships in two phases. Phase 1 hardens the codebase: eliminating silent
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Code Quality & Stability** - Hardened codebase with honest types, surfaced errors, and a test suite covering core business logic
+- [x] **Phase 1: Code Quality & Stability** - Hardened codebase with honest types, surfaced errors, and a test suite covering core business logic (completed 2026-03-16)
 - [ ] **Phase 2: UI — Clean & Professional** - Professional visual redesign with consistent design tokens, polished toolbar, and clear critical path emphasis
 
 ## Phase Details
@@ -57,5 +57,5 @@ Phases execute in numeric order: 1 → 2
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Code Quality & Stability | 6/7 | In Progress|  |
+| 1. Code Quality & Stability | 7/7 | Complete   | 2026-03-16 |
 | 2. UI — Clean & Professional | 0/TBD | Not started | - |
