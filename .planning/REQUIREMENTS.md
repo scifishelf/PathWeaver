@@ -15,9 +15,9 @@
 
 ### TYPES — Type Safety
 
-- [ ] **TYPES-01**: `isProjectJSON`-Type-Guard an der `JSON.parse()`-Grenze in `serialize.ts` — gibt `boolean` zurück, typed als `data is ProjectJSON`
+- [x] **TYPES-01**: `isProjectJSON`-Type-Guard an der `JSON.parse()`-Grenze in `serialize.ts` — gibt `boolean` zurück, typed als `data is ProjectJSON`
 - [x] **TYPES-02**: Discriminated Union für ReactFlow Node-Daten (`TaskNodeData | StartNodeData | EndNodeData`) eingeführt — ein Cast an der Grenze, downstream durchgängig typisiert
-- [ ] **TYPES-03**: `as any`-Casts in `serialize.ts` durch Type Guards / Narrowing ersetzt
+- [x] **TYPES-03**: `as any`-Casts in `serialize.ts` durch Type Guards / Narrowing ersetzt
 
 ### ERR — Error Handling
 
@@ -112,9 +112,9 @@
 | DEPS-01 | Phase 1 | Complete |
 | DEPS-02 | Phase 1 | Pending |
 | DEPS-03 | Phase 1 | Complete |
-| TYPES-01 | Phase 1 | Pending |
+| TYPES-01 | Phase 1 | Complete |
 | TYPES-02 | Phase 1 | Complete |
-| TYPES-03 | Phase 1 | Pending |
+| TYPES-03 | Phase 1 | Complete |
 | ERR-01 | Phase 1 | Complete |
 | ERR-02 | Phase 1 | Complete |
 | ERR-03 | Phase 1 | Pending |
