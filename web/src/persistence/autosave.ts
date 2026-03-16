@@ -4,40 +4,71 @@ const CURRENT_KEY = 'pw_autosave_current'
 const SNAPSHOTS_KEY = 'pw_snapshots_v1'
 const MAX_SNAPSHOTS = 10
 
-export function saveCurrent(project: ProjectJSON) {
+export interface SaveResult {
+  ok: boolean
+  error?: string
+}
+
+export function saveCurrent(project: ProjectJSON): SaveResult {
   try {
     localStorage.setItem(CURRENT_KEY, JSON.stringify({ ts: Date.now(), project }))
-  } catch {}
+    return { ok: true }
+  } catch (e) {
+    console.error(e)
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+      return { ok: false, error: 'Speicher voll — bitte Snapshots löschen oder Projekt als JSON exportieren' }
+    }
+    return { ok: false, error: 'Speichern fehlgeschlagen — bitte Seite neu laden oder Projekt als JSON exportieren' }
+  }
 }
 
 export function loadCurrent(): { ts: number; project: ProjectJSON } | undefined {
   try {
     const raw = localStorage.getItem(CURRENT_KEY)
     if (!raw) return undefined
-    return JSON.parse(raw)
-  } catch {
+    return JSON.parse(raw) as { ts: number; project: ProjectJSON }
+  } catch (e) {
+    console.error(e)
     return undefined
   }
 }
 
-export function saveSnapshot(project: ProjectJSON) {
+interface SnapshotEntry {
+  id: string
+  ts: number
+  name?: string
+  project: ProjectJSON
+}
+
+export function saveSnapshot(project: ProjectJSON, name?: string): SnapshotEntry | undefined {
   try {
     const raw = localStorage.getItem(SNAPSHOTS_KEY)
-    const list: { id: string; ts: number; project: ProjectJSON }[] = raw ? JSON.parse(raw) : []
-    const snap = { id: `${Date.now()}`, ts: Date.now(), project }
+    const list: SnapshotEntry[] = raw ? (JSON.parse(raw) as SnapshotEntry[]) : []
+    const snap: SnapshotEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      ts: Date.now(),
+      project,
+    }
+    if (name && name.trim().length > 0) {
+      snap.name = name.trim()
+    }
     list.unshift(snap)
     while (list.length > MAX_SNAPSHOTS) list.pop()
     localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(list))
     return snap
-  } catch {}
+  } catch (e) {
+    console.error(e)
+    return undefined
+  }
 }
 
-export function listSnapshots(): { id: string; ts: number }[] {
+export function listSnapshots(): { id: string; ts: number; name?: string }[] {
   try {
     const raw = localStorage.getItem(SNAPSHOTS_KEY)
-    const list: { id: string; ts: number; project: ProjectJSON }[] = raw ? JSON.parse(raw) : []
-    return list.map(({ id, ts }) => ({ id, ts }))
-  } catch {
+    const list: SnapshotEntry[] = raw ? (JSON.parse(raw) as SnapshotEntry[]) : []
+    return list.map(({ id, ts, name }) => ({ id, ts, ...(name ? { name } : {}) }))
+  } catch (e) {
+    console.error(e)
     return []
   }
 }
@@ -45,20 +76,21 @@ export function listSnapshots(): { id: string; ts: number }[] {
 export function loadSnapshot(id: string): ProjectJSON | undefined {
   try {
     const raw = localStorage.getItem(SNAPSHOTS_KEY)
-    const list: { id: string; ts: number; project: ProjectJSON }[] = raw ? JSON.parse(raw) : []
+    const list: SnapshotEntry[] = raw ? (JSON.parse(raw) as SnapshotEntry[]) : []
     return list.find((s) => s.id === id)?.project
-  } catch {
+  } catch (e) {
+    console.error(e)
     return undefined
   }
 }
 
-export function deleteSnapshot(id: string) {
+export function deleteSnapshot(id: string): void {
   try {
     const raw = localStorage.getItem(SNAPSHOTS_KEY)
-    const list: { id: string; ts: number; project: ProjectJSON }[] = raw ? JSON.parse(raw) : []
+    const list: SnapshotEntry[] = raw ? (JSON.parse(raw) as SnapshotEntry[]) : []
     const next = list.filter((s) => s.id !== id)
     localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(next))
-  } catch {}
+  } catch (e) {
+    console.error(e)
+  }
 }
-
-
