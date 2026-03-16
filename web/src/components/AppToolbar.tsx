@@ -2,8 +2,11 @@ import { toProjectJSON, fromProjectJSON, validateProjectJSON } from '../persiste
 import { saveSnapshot, listSnapshots, loadSnapshot, deleteSnapshot } from '../persistence/autosave'
 import { useEffect, useRef, useState } from 'react'
 import { Modal } from './Modal'
+import { Button } from './Button'
 import { toPng } from 'html-to-image'
+import { Download, Upload, Layers, Image, Loader2 } from 'lucide-react'
 import type { Edge, Node } from 'reactflow'
+import { COLOR_SURFACE, COLOR_BORDER, COLOR_BG, RADIUS_MD, SHADOW_SM, SHADOW_MD } from '../graph/theme'
 
 interface Props {
   nodes: Node[]
@@ -14,15 +17,18 @@ interface Props {
 }
 
 export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Props) {
-  const [snaps, setSnaps] = useState<{ id: string; ts: number }[]>([])
+  const [snaps, setSnaps] = useState<{ id: string; ts: number; name?: string }[]>([])
   const [snapshotName, setSnapshotName] = useState('')
   const [open, setOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
+  const [exporting, setExporting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
   useEffect(() => {
     setSnaps(listSnapshots())
   }, [])
+
   async function onExportClick() {
     const data = toProjectJSON(nodes, edges, computed, startDate)
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -36,7 +42,6 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
 
   function triggerFileDialog() {
     if (!fileInputRef.current) return
-    // Reset, damit erneut die gleiche Datei gewählt werden kann
     fileInputRef.current.value = ''
     fileInputRef.current.click()
   }
@@ -61,23 +66,69 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
     }
   }
 
+  async function onPngClick() {
+    const el = document.querySelector('.react-flow') as HTMLElement | null
+    if (!el) return
+    setExporting(true)
+    try {
+      const style = document.createElement('style')
+      style.id = 'pw-export-style'
+      style.innerHTML = `
+        .react-flow__node * { border-width: 1px !important; box-shadow: none !important; }
+        .react-flow__edge-path { stroke-width: 1.5px !important; }
+      `
+      document.head.appendChild(style)
+      const dataUrl = await toPng(el, {
+        backgroundColor: '#ffffff',
+        filter: (node) => {
+          if (!(node instanceof Element)) return true
+          const cls = node.classList
+          return (
+            !cls.contains('react-flow__controls') &&
+            !cls.contains('react-flow__panel') &&
+            !cls.contains('react-flow__minimap')
+          )
+        },
+      })
+      style.remove()
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = 'netzplan.png'
+      a.click()
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
-    <div style={{ display: 'flex', gap: 12 }}>
-      <button
-        onClick={onExportClick}
-        style={{
-          padding: '6px 12px',
-          border: '1px solid #d4d4d8',
-          borderRadius: 8,
-          fontSize: 12,
-          background: '#fff',
-          cursor: 'pointer',
-        }}
-      >
+    <div
+      style={{
+        display: 'flex',
+        gap: 4,
+        alignItems: 'center',
+        background: COLOR_SURFACE,
+        border: `1px solid ${COLOR_BORDER}`,
+        borderRadius: RADIUS_MD,
+        padding: '4px 8px',
+        boxShadow: SHADOW_SM,
+      }}
+    >
+      {/* Group 1: Export + Import */}
+      <Button variant="ghost" icon={<Download size={16} />} onClick={onExportClick}>
         Export
-      </button>
+      </Button>
+      <Button variant="ghost" icon={<Upload size={16} />} onClick={triggerFileDialog}>
+        Import
+      </Button>
+
+      {/* Visual separator */}
+      <div style={{ width: 1, height: 20, background: COLOR_BORDER, margin: '0 4px' }} />
+
+      {/* Group 2: Snapshots + PNG */}
       <div style={{ position: 'relative' }}>
-        <button
+        <Button
+          variant="ghost"
+          icon={<Layers size={16} />}
           onClick={() => {
             if (!open) {
               setOpen(true)
@@ -86,29 +137,21 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
               setOpen(false)
             }
           }}
-          style={{
-            padding: '6px 12px',
-            border: '1px solid #d4d4d8',
-            borderRadius: 8,
-            fontSize: 12,
-            background: '#fff',
-            cursor: 'pointer',
-          }}
         >
           Snapshots
-        </button>
+        </Button>
         {open && (
           <div
             style={{
               position: 'absolute',
               top: '110%',
               right: 0,
-              background: '#fff',
-              border: '1px solid #d4d4d8',
-              borderRadius: 8,
+              background: COLOR_BG,
+              border: `1px solid ${COLOR_BORDER}`,
+              borderRadius: RADIUS_MD,
               width: 280,
               padding: 8,
-              boxShadow: '0 4px 12px rgba(0,0,0,.12)',
+              boxShadow: SHADOW_MD,
               zIndex: 10002,
             }}
           >
@@ -156,9 +199,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                 {snaps.map((s) => (
                   <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
                     <span style={{ fontSize: 12 }}>
-                      {(s as { id: string; ts: number; name?: string }).name
-                        ? (s as { id: string; ts: number; name?: string }).name
-                        : new Date(s.ts).toLocaleString()}
+                      {s.name ? s.name : new Date(s.ts).toLocaleString()}
                     </span>
                     <span>
                       <button
@@ -191,20 +232,17 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
           </div>
         )}
       </div>
-      <button
-        onClick={triggerFileDialog}
-        style={{
-          padding: '6px 12px',
-          border: '1px solid #d4d4d8',
-          borderRadius: 8,
-          fontSize: 12,
-          background: '#fff',
-          cursor: 'pointer',
-        }}
+
+      <Button
+        variant="ghost"
+        icon={exporting ? <Loader2 size={16} className="animate-spin" /> : <Image size={16} />}
+        onClick={onPngClick}
+        disabled={exporting}
       >
-        Import
-      </button>
-      {/* Verstecktes Datei-Input für Direktimport */}
+        {exporting ? 'Exportiere...' : 'PNG'}
+      </Button>
+
+      {/* Hidden file input for import */}
       <input
         ref={fileInputRef}
         type="file"
@@ -212,47 +250,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
         onChange={handleFileSelected}
         style={{ display: 'none' }}
       />
-      <button
-        onClick={async () => {
-          const el = document.querySelector('.react-flow') as HTMLElement | null
-          if (!el) return
-          // Temporäre Stil-Anpassungen für dünnere Linien im Export
-          const style = document.createElement('style')
-          style.id = 'pw-export-style'
-          style.innerHTML = `
-            .react-flow__node * { border-width: 1px !important; box-shadow: none !important; }
-            .react-flow__edge-path { stroke-width: 1.5px !important; }
-          `
-          document.head.appendChild(style)
-          const dataUrl = await toPng(el, {
-            backgroundColor: '#ffffff',
-            filter: (node) => {
-              if (!(node instanceof Element)) return true
-              const cls = node.classList
-              return (
-                !cls.contains('react-flow__controls') &&
-                !cls.contains('react-flow__panel') &&
-                !cls.contains('react-flow__minimap')
-              )
-            },
-          })
-          style.remove()
-          const a = document.createElement('a')
-          a.href = dataUrl
-          a.download = 'netzplan.png'
-          a.click()
-        }}
-        style={{
-          padding: '6px 12px',
-          border: '1px solid #d4d4d8',
-          borderRadius: 8,
-          fontSize: 12,
-          background: '#fff',
-          cursor: 'pointer',
-        }}
-      >
-        PNG
-      </button>
+
       <Modal open={importOpen} onClose={() => setImportOpen(false)} title="JSON importieren">
         <div className="space-y-3 text-sm">
           <div className="font-medium">Die Datei konnte nicht importiert werden:</div>
@@ -271,5 +269,3 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
     </div>
   )
 }
-
-
