@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest'
-import { toProjectJSON, fromProjectJSON, validateProjectJSON } from './serialize'
+import { validateProjectJSON } from './serialize'
 import type { ProjectJSON } from '../cpm/types'
 
 describe('serialize round-trip (TEST-01)', () => {

@@ -61,4 +61,34 @@ export class ComputeError extends Error {
   }
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// ReactFlow node data types — discriminated union for type-safe node.data access
+// One cast at the ReactFlow boundary; downstream code uses AppNodeData directly.
+// ────────────────────────────────────────────────────────────────────────────
 
+export interface TaskNodeData {
+  type: 'task'
+  id: string
+  title: string
+  duration: number
+  computed?: ComputedNode
+  onEdit: (id: string, patch: Partial<{ title: string; duration: number }>) => void
+  startDate?: string
+  focusOnMount?: boolean
+}
+
+export interface StartNodeData {
+  type: 'start'
+  label: string
+  startDate?: string
+  onChangeStartDate: (date: string) => void
+}
+
+export interface EndNodeData {
+  type: 'end'
+  label: string
+  startDate?: string
+  computed?: ComputedNode
+}
+
+export type AppNodeData = TaskNodeData | StartNodeData | EndNodeData
