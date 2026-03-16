@@ -106,11 +106,13 @@ All copy is in German, consistent with existing codebase language (German throug
 | Situation | Copy |
 |-----------|------|
 | QuotaExceededError | "Speicher voll — bitte Snapshots löschen oder Projekt als JSON exportieren" |
-| Generic save failure | "Speichern fehlgeschlagen" |
+| Generic save failure | "Speichern fehlgeschlagen — bitte Seite neu laden oder Projekt als JSON exportieren" |
 | Import validation failure (existing) | "Die Datei konnte nicht importiert werden:" + list of error strings from `validateProjectJSON()` |
 | Invalid JSON on import (existing) | "Ungültiges JSON" |
 
-Source: QuotaExceeded copy locked in CONTEXT.md (`saveCurrent` returns `SaveResult`). Generic save failure and invalid JSON are Claude's discretion per CONTEXT.md.
+The two save error messages are intentionally distinct: QuotaExceeded names the cause (storage full) and asks the user to free space; the generic failure offers page reload as the first recovery action, which is appropriate for transient or unknown errors. Users who see "Speicher voll" know to delete data; users who see "Speichern fehlgeschlagen" know to try reloading first.
+
+Source: QuotaExceeded copy locked in CONTEXT.md (`saveCurrent` returns `SaveResult`). Generic save failure is Claude's discretion per CONTEXT.md.
 
 ### Snapshot Panel (SNAP-01)
 
