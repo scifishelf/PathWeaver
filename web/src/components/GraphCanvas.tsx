@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react'
-import ReactFlow, { Background, Controls, MiniMap, Panel, useEdgesState, useNodesState, addEdge } from 'reactflow'
+import { useCallback, useMemo, useState, useEffect } from 'react'
+import ReactFlow, { Background, Controls, MiniMap, Panel, useEdgesState, useNodesState, addEdge, useReactFlow, ReactFlowProvider } from 'reactflow'
 import type { NodeTypes } from 'reactflow'
 import { StartNode } from '../graph/StartNode'
 import { EndNode } from '../graph/EndNode'
@@ -13,15 +13,24 @@ import { computeCPM } from '../cpm/compute'
 import { AppToolbar } from './AppToolbar'
 import { CRITICAL_BG } from '../graph/theme'
 import { toProjectJSON, fromProjectJSON } from '../persistence/serialize'
-import { saveCurrent, loadCurrent } from '../persistence/autosave'
+import { saveCurrent, loadCurrent, type SaveResult } from '../persistence/autosave'
 
 //
+
+// ISO date validation helper
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+function isValidISODate(s: string | undefined): s is string {
+  if (!s) return false
+  if (!ISO_DATE_RE.test(s)) return false
+  return !isNaN(new Date(s).getTime())
+}
 
 // Stabile Node-Typen (immer gleiche Referenz → keine Warnung #002)
 const nodeTypes: NodeTypes = { start: StartNode, end: EndNode, task: TaskNode }
 
-export function GraphCanvas() {
-  const idRef = useRef(1)
+function GraphCanvasInner() {
+  const { getViewport } = useReactFlow()
   const initialNodes = useMemo(
     () => [
       { id: 'start', position: { x: 120, y: 300 }, data: { label: 'Start' }, type: 'start', deletable: false },
@@ -33,6 +42,7 @@ export function GraphCanvas() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [menu, setMenu] = useState<{ x: number; y: number; nodeId: string } | null>(null)
   const [errors, setErrors] = useState<string[]>([])
+  const [quotaError, setQuotaError] = useState<string | null>(null)
 
   const onConnect = useCallback((connection: Connection) => setEdges((eds) => addEdge({ ...connection }, eds)), [])
   // Guards: Start hat keine Eingänge, Ende keine Ausgänge, Task max. 1 Ausgang
@@ -53,37 +63,6 @@ export function GraphCanvas() {
     [nodes, edges]
   )
 
-  const getNextTaskId = useCallback(() => {
-    // Ermittelt die nächste freie Nummer für IDs im Format N{num}
-    let max = 0
-    for (const n of nodes) {
-      const m = /^N(\d+)$/.exec(n.id)
-      if (m) {
-        const num = parseInt(m[1], 10)
-        if (!Number.isNaN(num)) max = Math.max(max, num)
-      }
-    }
-    // idRef nur als Fallback/Monotonie-Schutz
-    max = Math.max(max, idRef.current)
-    idRef.current = max + 1
-    return `N${max + 1}`
-  }, [nodes])
-
-  const addTaskNode = useCallback(() => {
-    const id = getNextTaskId()
-    const newNode = {
-      id,
-      data: { id, title: id, duration: 1 } as any,
-      position: { x: 420, y: 160 },
-      type: 'task' as const,
-    }
-    setNodes((nds) => {
-      const next = nds.concat(newNode as any)
-      setTimeout(() => validate(), 0)
-      return next
-    })
-  }, [setNodes, getNextTaskId])
-
   // Inline‑Edit Handler
   const onEditTask = useCallback(
     (id: string, patch: Partial<{ title: string; duration: number }>) => {
@@ -91,6 +70,24 @@ export function GraphCanvas() {
     },
     []
   )
+
+  const addTaskNode = useCallback((x?: number, y?: number) => {
+    const id = crypto.randomUUID()
+    // Count existing task nodes for sequential German title
+    const taskCount = nodes.filter((n) => n.type === 'task').length
+    const title = `Aufgabe ${taskCount + 1}`
+    const position = {
+      x: x ?? 420,
+      y: y ?? 160,
+    }
+    const newNode = {
+      id,
+      data: { type: 'task' as const, id, title, duration: 1, focusOnMount: true, onEdit: onEditTask } as any,
+      position,
+      type: 'task' as const,
+    }
+    setNodes((nds) => nds.concat(newNode as any))
+  }, [setNodes, nodes, onEditTask])
 
   const onNodeContextMenu = useCallback((evt: React.MouseEvent, node: { id: string; deletable?: boolean }) => {
     evt.preventDefault()
@@ -116,8 +113,15 @@ export function GraphCanvas() {
     const t = setTimeout(() => {
       try {
         const pj = toProjectJSON(nodes as any, edges as any, undefined, startDate)
-        saveCurrent(pj)
-      } catch {}
+        const result: SaveResult = saveCurrent(pj)
+        if (!result.ok && result.error) {
+          setQuotaError(result.error)
+        } else {
+          setQuotaError(null)
+        }
+      } catch (e) {
+        console.error(e)
+      }
     }, 300)
     return () => clearTimeout(t)
   }, [validate, nodes, edges, startDate])
@@ -131,15 +135,26 @@ export function GraphCanvas() {
         setNodes(nn as any)
         setEdges(ee as any)
         setStartDate(cur.project.settings?.startDate)
-        const m = nn
-          .map((n) => /^N(\d+)$/.exec(n.id))
-          .filter(Boolean)
-          .map((m: any) => parseInt(m[1], 10))
-        const max = m.length ? Math.max(...(m as number[])) : 0
-        if (max >= idRef.current) idRef.current = max + 1
       }
-    } catch {}
+    } catch (e) {
+      console.error(e)
+    }
   }, [])
+
+  // T-shortcut: press T to create a new task node at viewport center
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 't' && e.key !== 'T') return
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return
+      const { x, y, zoom } = getViewport()
+      const centerX = (window.innerWidth / 2 - x) / zoom
+      const centerY = (window.innerHeight / 2 - y) / zoom
+      addTaskNode(centerX, centerY)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [getViewport, addTaskNode])
 
   // Highlight-Sets aus aktuellem Graph ableiten
   const startId = useMemo(() => nodes.find((n) => n.type === 'start')?.id, [nodes])
@@ -178,13 +193,15 @@ export function GraphCanvas() {
   const cp = useMemo(() => {
     if (errors.length > 0) return undefined
     try {
+      const validatedStartDate = isValidISODate(startDate) ? startDate : undefined
       const plan = {
-        settings: { version: '1.0' as const, startDate },
+        settings: { version: '1.0' as const, startDate: validatedStartDate },
         nodes: nodes.map((n) => ({ id: n.id, type: n.type === 'task' ? 'task' : (n.type as any), duration: (n.data as any)?.duration })),
         edges: edges.map((e) => ({ from: e.source!, to: e.target! })),
       }
       return computeCPM(plan as any)
-    } catch {
+    } catch (e) {
+      console.error(e)
       return undefined
     }
   }, [nodes, edges, errors, startDate])
@@ -243,11 +260,9 @@ export function GraphCanvas() {
         edges={styledEdges}
         onNodesChange={(chs) => {
           onNodesChange(chs)
-          setTimeout(() => validate(), 0)
         }}
         onEdgesChange={(chs) => {
           onEdgesChange(chs)
-          setTimeout(() => validate(), 0)
         }}
         onConnect={onConnect}
         isValidConnection={isValidConnection}
@@ -269,15 +284,7 @@ export function GraphCanvas() {
             onImport={(nn, ee, importedStartDate) => {
               setNodes(nn as any)
               setEdges(ee as any)
-              // Seed den lokalen Zähler anhand der importierten IDs
-              const m = nn
-                .map((n) => /^N(\d+)$/.exec(n.id))
-                .filter(Boolean)
-                .map((m: any) => parseInt(m[1], 10))
-              const max = m.length ? Math.max(...(m as number[])) : 0
-              if (max >= idRef.current) idRef.current = max + 1
               setStartDate(importedStartDate)
-              setTimeout(() => validate(), 0)
             }}
           />
         </Panel>
@@ -285,7 +292,7 @@ export function GraphCanvas() {
           <button
             aria-label="Neuen Task hinzufügen"
             title="Neuen Task hinzufügen"
-            onClick={addTaskNode}
+            onClick={() => addTaskNode()}
             style={{
               height: 45,
               width: 45,
@@ -356,6 +363,29 @@ export function GraphCanvas() {
           </div>
         </div>
       )}
+      {quotaError && (
+        <div
+          style={{
+            position: 'fixed',
+            top: errors.length > 0 ? 120 : 56,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: 'min(800px, 95vw)',
+            zIndex: 10000,
+          }}
+        >
+          <div style={{
+            background: '#fefce8',
+            border: '1px solid #fef08a',
+            borderRadius: 8,
+            padding: 12,
+            fontSize: 12,
+            color: '#854d0e',
+          }}>
+            {quotaError}
+          </div>
+        </div>
+      )}
       {menu && (
         <ContextMenu
           x={menu.x}
@@ -375,4 +405,10 @@ export function GraphCanvas() {
   )
 }
 
-
+export function GraphCanvas() {
+  return (
+    <ReactFlowProvider>
+      <GraphCanvasInner />
+    </ReactFlowProvider>
+  )
+}
