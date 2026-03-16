@@ -2,7 +2,7 @@ import { toProjectJSON, fromProjectJSON, validateProjectJSON } from '../persiste
 import { saveSnapshot, listSnapshots, loadSnapshot, deleteSnapshot } from '../persistence/autosave'
 import { useEffect, useRef, useState } from 'react'
 import { Modal } from './Modal'
-import domtoimage from 'dom-to-image-more'
+import { toPng } from 'html-to-image'
 import type { Edge, Node } from 'reactflow'
 
 interface Props {
@@ -15,6 +15,7 @@ interface Props {
 
 export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Props) {
   const [snaps, setSnaps] = useState<{ id: string; ts: number }[]>([])
+  const [snapshotName, setSnapshotName] = useState('')
   const [open, setOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
@@ -113,18 +114,40 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
               <div style={{ fontWeight: 600 }}>Snapshots</div>
-              <button
-                onClick={() => {
-                  try {
-                    const pj = toProjectJSON(nodes, edges, undefined, startDate)
-                    saveSnapshot(pj)
-                    setSnaps(listSnapshots())
-                  } catch {}
-                }}
-                style={{ fontSize: 12 }}
-              >
-                + Neu
-              </button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={snapshotName}
+                  onChange={(e) => setSnapshotName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      const pj = toProjectJSON(nodes, edges, undefined, startDate)
+                      saveSnapshot(pj, snapshotName)
+                      setSnapshotName('')
+                      setSnaps(listSnapshots())
+                    }
+                  }}
+                  placeholder="Name (optional)"
+                  className="text-xs px-2 py-1 border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-neutral-400"
+                  style={{ width: '100%', maxWidth: 140 }}
+                />
+                <button
+                  onClick={() => {
+                    try {
+                      const pj = toProjectJSON(nodes, edges, undefined, startDate)
+                      saveSnapshot(pj, snapshotName)
+                      setSnapshotName('')
+                      setSnaps(listSnapshots())
+                    } catch (e) {
+                      console.error(e)
+                    }
+                  }}
+                  style={{ fontSize: 12 }}
+                >
+                  + Neu
+                </button>
+              </div>
             </div>
             {snaps.length === 0 ? (
               <div style={{ fontSize: 12, color: '#6b7280' }}>Keine Snapshots</div>
@@ -132,7 +155,11 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflowY: 'auto' }}>
                 {snaps.map((s) => (
                   <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
-                    <span style={{ fontSize: 12 }}>{new Date(s.ts).toLocaleString()}</span>
+                    <span style={{ fontSize: 12 }}>
+                      {(s as { id: string; ts: number; name?: string }).name
+                        ? (s as { id: string; ts: number; name?: string }).name
+                        : new Date(s.ts).toLocaleString()}
+                    </span>
                     <span>
                       <button
                         onClick={() => {
@@ -197,7 +224,18 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
             .react-flow__edge-path { stroke-width: 1.5px !important; }
           `
           document.head.appendChild(style)
-          const dataUrl = await domtoimage.toPng(el, { bgcolor: '#ffffff', quality: 1 })
+          const dataUrl = await toPng(el, {
+            backgroundColor: '#ffffff',
+            filter: (node) => {
+              if (!(node instanceof Element)) return true
+              const cls = node.classList
+              return (
+                !cls.contains('react-flow__controls') &&
+                !cls.contains('react-flow__panel') &&
+                !cls.contains('react-flow__minimap')
+              )
+            },
+          })
           style.remove()
           const a = document.createElement('a')
           a.href = dataUrl
