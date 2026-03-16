@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-03-16T15:33:54.863Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-03-16T15:40:11.799Z"
 last_activity: 2026-03-16 — Roadmap created
 progress:
   total_phases: 2
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
   percent: 0
 ---
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-ui-clean-professional P01 | 2min | 2 tasks | 3 files |
 | Phase 02-ui-clean-professional P03 | 2min | 2 tasks | 5 files |
 | Phase 02-ui-clean-professional P02 | 2min | 2 tasks | 3 files |
+| Phase 02-ui-clean-professional P04 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Recent decisions affecting current work:
 - [Phase 02-ui-clean-professional]: StartNode/EndNode use COLOR_BG (not CRITICAL_BG) — applying CRITICAL_BG to all start/end nodes was a semantic bug; only task nodes appear on CP
 - [Phase 02-ui-clean-professional]: Ghost variant uses focus-visible: not focus: — avoids keyboard-style ring on mouse click
 - [Phase 02-ui-clean-professional]: Snapshot dropdown internal buttons (Neu, Laden, Löschen) kept as plain button elements — out of scope per plan
+- [Phase 02-ui-clean-professional]: formatDateShort uses d.getFullYear() directly (no % 100) for 4-digit year
+- [Phase 02-ui-clean-professional]: TaskNode uses CSS border longhands (borderWidth/borderStyle/borderColor) instead of shorthand for jsdom testability
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:33:54.862Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-03-16T15:40:11.797Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
