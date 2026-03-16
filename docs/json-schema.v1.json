@@ -44,6 +44,11 @@
         "required": ["from", "to"],
         "additionalProperties": false
       }
+    },
+    "computed": {
+      "type": "object",
+      "description": "Optional computed CPM results — present in app exports. Not required for import validation.",
+      "additionalProperties": true
     }
   },
   "required": ["nodes", "edges"],
