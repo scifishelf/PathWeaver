@@ -47,8 +47,8 @@
 
 ### UI-FOUND — UI Foundation
 
-- [ ] **UI-FOUND-01**: `"(MVP)"` aus dem App-Titel entfernt; Titel lautet schlicht `"PathWeaver"` oder `"PathWeaver – Netzplan"`
-- [ ] **UI-FOUND-02**: `theme.ts` zu einem vollständigen Design-Token-System ausgebaut — alle Farben, Border-Radius, Shadows als benannte Konstanten oder CSS-Variablen; kein hardcodierter Hex-Wert mehr in Komponenten
+- [x] **UI-FOUND-01**: `"(MVP)"` aus dem App-Titel entfernt; Titel lautet schlicht `"PathWeaver"` oder `"PathWeaver – Netzplan"`
+- [x] **UI-FOUND-02**: `theme.ts` zu einem vollständigen Design-Token-System ausgebaut — alle Farben, Border-Radius, Shadows als benannte Konstanten oder CSS-Variablen; kein hardcodierter Hex-Wert mehr in Komponenten
 
 ### UI-TOOLBAR — Toolbar Redesign
 
@@ -129,8 +129,8 @@
 | TEST-04 | Phase 1 | Complete |
 | SNAP-01 | Phase 1 | Complete |
 | SNAP-02 | Phase 1 | Complete |
-| UI-FOUND-01 | Phase 2 | Pending |
-| UI-FOUND-02 | Phase 2 | Pending |
+| UI-FOUND-01 | Phase 2 | Complete |
+| UI-FOUND-02 | Phase 2 | Complete |
 | UI-TOOLBAR-01 | Phase 2 | Pending |
 | UI-TOOLBAR-02 | Phase 2 | Pending |
 | UI-TOOLBAR-03 | Phase 2 | Pending |
