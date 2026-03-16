@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-04-PLAN.md
-last_updated: "2026-03-16T15:40:11.799Z"
+stopped_at: Completed 02-05-PLAN.md
+last_updated: "2026-03-16T15:59:37.901Z"
 last_activity: 2026-03-16 — Roadmap created
 progress:
   total_phases: 2
   completed_phases: 2
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 12
+  completed_plans: 12
   percent: 0
 ---
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-ui-clean-professional P03 | 2min | 2 tasks | 5 files |
 | Phase 02-ui-clean-professional P02 | 2min | 2 tasks | 3 files |
 | Phase 02-ui-clean-professional P04 | 4min | 2 tasks | 4 files |
+| Phase 02-ui-clean-professional P05 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,8 @@ Recent decisions affecting current work:
 - [Phase 02-ui-clean-professional]: Snapshot dropdown internal buttons (Neu, Laden, Löschen) kept as plain button elements — out of scope per plan
 - [Phase 02-ui-clean-professional]: formatDateShort uses d.getFullYear() directly (no % 100) for 4-digit year
 - [Phase 02-ui-clean-professional]: TaskNode uses CSS border longhands (borderWidth/borderStyle/borderColor) instead of shorthand for jsdom testability
+- [Phase 02-ui-clean-professional]: rgba() shadow values kept inline in GraphCanvas — no token for rgba alpha variants
+- [Phase 02-ui-clean-professional]: CP banner values (#eff6ff, #1d4ed8) intentionally retained — distinct from token values by design, locked per plan 02-03
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T15:40:11.797Z
-Stopped at: Completed 02-04-PLAN.md
+Last session: 2026-03-16T15:59:37.899Z
+Stopped at: Completed 02-05-PLAN.md
 Resume file: None
