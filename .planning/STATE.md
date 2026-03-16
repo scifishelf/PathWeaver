@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-03-16T13:55:32.057Z"
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-03-16T13:57:41.867Z"
 last_activity: 2026-03-16 — Roadmap created
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-code-quality-stability P04 | 2min | 1 tasks | 1 files |
 | Phase 01-code-quality-stability P03 | 3min | 1 tasks | 2 files |
 | Phase 01-code-quality-stability P05 | 8min | 2 tasks | 4 files |
+| Phase 01-code-quality-stability P06 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 01-code-quality-stability]: isProjectJSON delegates to validateProjectJSON — one validation implementation, two calling conventions (errors array vs boolean predicate)
 - [Phase 01-code-quality-stability]: fromProjectJSON placeholder handlers (onEdit/onChangeStartDate) required by interfaces but replaced by GraphCanvas after setNodes — never fire in practice
 - [Phase 01-code-quality-stability]: html-to-image filter must guard with instanceof Element; snapshot name clears after save; dom-to-image-more fully purged
+- [Phase 01-code-quality-stability]: ReactFlowProvider wrapper pattern: when component needs useReactFlow(), wrap with provider rather than restructuring JSX tree
+- [Phase 01-code-quality-stability]: focusOnMount as creation-time signal in node data; useEffect with empty deps fires once on mount for auto-focus
+- [Phase 01-code-quality-stability]: idRef counter and getNextTaskId removed entirely; crypto.randomUUID() eliminates all N{num} collision concerns
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T13:55:32.055Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-03-16T13:57:41.865Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None
