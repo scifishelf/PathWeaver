@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-16T13:45:16.629Z"
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-16T13:46:23.817Z"
 last_activity: 2026-03-16 — Roadmap created
 progress:
   total_phases: 2
   completed_phases: 0
   total_plans: 7
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-code-quality-stability P02 | 4 | 2 tasks | 5 files |
+| Phase 01-code-quality-stability P01 | 3min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,9 @@ Recent decisions affecting current work:
 - Stack: `html-to-image` replaces `dom-to-image-more`; Zustand to be removed; immer usage to be verified before removal
 - Architecture: `as any` cleanup in `serialize.ts` must follow test coverage; fix `autosave.ts` error handling before any storage key changes
 - [Phase 01-code-quality-stability]: Linter removes unused imports from todo stub test files — acceptable since stubs are contracts only; imports re-added when tests are implemented in Plan 01-07
+- [Phase 01-code-quality-stability]: Removed zustand/immer immediately after confirming zero imports in src
+- [Phase 01-code-quality-stability]: AppNodeData discriminated union shapes match forward-looking required fields, not current as-any usage
+- [Phase 01-code-quality-stability]: json-schema top-level additionalProperties: false retained; computed now declared in properties so it passes validation
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T13:45:07.866Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-16T13:46:23.815Z
+Stopped at: Completed 01-01-PLAN.md
 Resume file: None
