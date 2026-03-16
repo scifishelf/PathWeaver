@@ -1,12 +1,106 @@
 import '@testing-library/jest-dom/vitest'
-import { validateProjectJSON, isProjectJSON } from './serialize'
+import { toProjectJSON, fromProjectJSON, validateProjectJSON, isProjectJSON } from './serialize'
+import type { Node, Edge } from 'reactflow'
+import type { AppNodeData, TaskNodeData, StartNodeData, EndNodeData } from '../cpm/types'
 import type { ProjectJSON } from '../cpm/types'
 
+// ─── Helper builders ─────────────────────────────────────────────────────────
+
+function taskNode(id: string, title: string, duration: number): Node<TaskNodeData> {
+  return {
+    id,
+    type: 'task',
+    position: { x: 10, y: 20 },
+    data: { type: 'task', id, title, duration, onEdit: () => {} },
+  }
+}
+
+function startNode(): Node<StartNodeData> {
+  return {
+    id: 'start',
+    type: 'start',
+    position: { x: 0, y: 0 },
+    data: { type: 'start', label: 'Start', onChangeStartDate: () => {} },
+  }
+}
+
+function endNode(): Node<EndNodeData> {
+  return {
+    id: 'end',
+    type: 'end',
+    position: { x: 100, y: 0 },
+    data: { type: 'end', label: 'Ziel' },
+  }
+}
+
+function makeEdge(source: string, target: string): Edge {
+  return { id: `${source}-${target}`, source, target }
+}
+
+// ─── Round-trip tests (TEST-01) ───────────────────────────────────────────────
+
 describe('serialize round-trip (TEST-01)', () => {
-  it.todo('round-trip: minimal graph (start + end only) preserves all fields')
-  it.todo('round-trip: graph with 3 task nodes preserves ids, titles, durations, positions')
-  it.todo('round-trip: graph with startDate setting preserves startDate')
+  it('round-trip: minimal graph (start + end only) preserves all fields', () => {
+    const nodes: Node<AppNodeData>[] = [startNode(), endNode()]
+    const edges: Edge[] = []
+    const json = toProjectJSON(nodes, edges)
+    const { nodes: restored, edges: restoredEdges } = fromProjectJSON(json)
+    expect(restored.map(n => n.id).sort()).toEqual(['end', 'start'])
+    expect(restored.find(n => n.id === 'start')?.type).toBe('start')
+    expect(restored.find(n => n.id === 'end')?.type).toBe('end')
+    expect(restoredEdges).toHaveLength(0)
+  })
+
+  it('round-trip: graph with 3 task nodes preserves ids, titles, durations, positions', () => {
+    const nodes: Node<AppNodeData>[] = [
+      startNode(),
+      taskNode('A', 'Analyse', 5),
+      taskNode('B', 'Entwicklung', 10),
+      taskNode('C', 'Testing', 3),
+      endNode(),
+    ]
+    const edges: Edge[] = [
+      makeEdge('start', 'A'),
+      makeEdge('A', 'B'),
+      makeEdge('B', 'C'),
+      makeEdge('C', 'end'),
+    ]
+    const json = toProjectJSON(nodes, edges)
+    const { nodes: restored, edges: restoredEdges } = fromProjectJSON(json)
+
+    expect(restored).toHaveLength(5)
+    const taskA = restored.find(n => n.id === 'A')
+    expect(taskA?.type).toBe('task')
+    const dataA = taskA?.data as TaskNodeData
+    expect(dataA.title).toBe('Analyse')
+    expect(dataA.duration).toBe(5)
+
+    const taskC = restored.find(n => n.id === 'C')
+    const dataC = taskC?.data as TaskNodeData
+    expect(dataC.title).toBe('Testing')
+    expect(dataC.duration).toBe(3)
+
+    expect(restoredEdges).toHaveLength(4)
+    expect(restoredEdges.find(e => e.source === 'A' && e.target === 'B')).toBeDefined()
+  })
+
+  it('round-trip: graph with startDate setting preserves startDate', () => {
+    const nodes: Node<AppNodeData>[] = [startNode(), taskNode('T1', 'Task', 2), endNode()]
+    const edges: Edge[] = [makeEdge('start', 'T1'), makeEdge('T1', 'end')]
+    const startDate = '2025-10-06'
+    const json = toProjectJSON(nodes, edges, undefined, startDate)
+
+    expect(json.settings?.startDate).toBe(startDate)
+
+    const { nodes: restored } = fromProjectJSON(json)
+    expect(restored.find(n => n.id === 'T1')?.type).toBe('task')
+    const taskData = restored.find(n => n.id === 'T1')?.data as TaskNodeData
+    expect(taskData.title).toBe('Task')
+    expect(taskData.duration).toBe(2)
+  })
 })
+
+// ─── isProjectJSON type guard (TYPES-01) ─────────────────────────────────────
 
 describe('isProjectJSON type guard (TYPES-01)', () => {
   it('returns true for valid ProjectJSON with nodes and edges', () => {
@@ -31,6 +125,8 @@ describe('isProjectJSON type guard (TYPES-01)', () => {
   })
 })
 
+// ─── validateProjectJSON (existing — regression guard) ───────────────────────
+
 describe('validateProjectJSON (existing — regression guard)', () => {
   it('returns empty array for valid project', () => {
     const valid: ProjectJSON = {
@@ -49,6 +145,6 @@ describe('validateProjectJSON (existing — regression guard)', () => {
       nodes: [{ id: 'end', type: 'end' }],
       edges: [],
     }
-    expect(validateProjectJSON(noStart)).toContain('Start‑Knoten fehlt')
+    expect(validateProjectJSON(noStart)).toContain('Start\u2011Knoten fehlt')
   })
 })

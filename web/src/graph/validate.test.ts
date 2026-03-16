@@ -18,9 +18,39 @@ describe('validateGraph (TEST-02)', () => {
     expect(validateGraph(nodes, edges)).toEqual([])
   })
 
-  it.todo('returns error when a task node has no outgoing edge (missing connection)')
-  it.todo('returns error when a cycle is present')
-  it.todo('returns error for orphaned node not reachable from start')
-  it.todo('returns error when start node is missing')
-  it.todo('returns error when end node is missing')
+  it('returns error when an edge creates an incoming connection to start (missing connection rule)', () => {
+    // validateGraph catches when start receives incoming edges (invalid topology)
+    const nodes = [makeNode('start', 'start'), makeNode('A', 'task'), makeNode('end', 'end')]
+    const edges = [makeEdge('A', 'start'), makeEdge('start', 'end')] // A→start is invalid
+    const errs = validateGraph(nodes, edges)
+    expect(errs.some(e => /Start hat Eingänge/.test(e))).toBe(true)
+  })
+
+  it('returns error when a cycle is present', () => {
+    const nodes = [makeNode('start', 'start'), makeNode('A', 'task'), makeNode('B', 'task'), makeNode('end', 'end')]
+    const edges = [makeEdge('start', 'A'), makeEdge('A', 'B'), makeEdge('B', 'A'), makeEdge('B', 'end')]
+    const errs = validateGraph(nodes, edges)
+    expect(errs.some(e => /Zyklus/.test(e))).toBe(true)
+  })
+
+  it('returns error for orphaned node not reachable from start', () => {
+    const nodes = [makeNode('start', 'start'), makeNode('orphan', 'task'), makeNode('end', 'end')]
+    const edges = [makeEdge('start', 'end')] // orphan has no incoming edge from start
+    const errs = validateGraph(nodes, edges)
+    expect(errs.some(e => /nicht mit Start verbunden/.test(e))).toBe(true)
+  })
+
+  it('returns error when start node is missing', () => {
+    const nodes = [makeNode('A', 'task'), makeNode('end', 'end')]
+    const edges = [makeEdge('A', 'end')]
+    const errs = validateGraph(nodes, edges)
+    expect(errs.some(e => /Start/.test(e))).toBe(true)
+  })
+
+  it('returns error when end node is missing', () => {
+    const nodes = [makeNode('start', 'start'), makeNode('A', 'task')]
+    const edges = [makeEdge('start', 'A')]
+    const errs = validateGraph(nodes, edges)
+    expect(errs.some(e => /Ziel/.test(e))).toBe(true)
+  })
 })
