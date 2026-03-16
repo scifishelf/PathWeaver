@@ -35,10 +35,10 @@
 
 ### TEST — Test Coverage
 
-- [ ] **TEST-01**: Serialisierungs-Round-Trip-Test: `fromProjectJSON(toProjectJSON(state))` ergibt identischen State — für mindestens 3 verschiedene Graph-Konfigurationen
-- [ ] **TEST-02**: `validateGraph()` Unit-Tests: gültiger Graph, fehlende Verbindungen, Zyklen, orphaned Nodes
-- [ ] **TEST-03**: `workdays.ts` Unit-Tests: `addWorkdays()` mit Startdatum, Wochenendes überspringen, ungültiges Datum wirft Fehler statt Infinite Loop
-- [ ] **TEST-04**: CPM-Edge-Cases: einzelner Node (nur Start+End), disconnected Subgraph, Zyklus-Erkennung, Fehlercode-Prüfung via `ComputeError.code`
+- [x] **TEST-01**: Serialisierungs-Round-Trip-Test: `fromProjectJSON(toProjectJSON(state))` ergibt identischen State — für mindestens 3 verschiedene Graph-Konfigurationen
+- [x] **TEST-02**: `validateGraph()` Unit-Tests: gültiger Graph, fehlende Verbindungen, Zyklen, orphaned Nodes
+- [x] **TEST-03**: `workdays.ts` Unit-Tests: `addWorkdays()` mit Startdatum, Wochenendes überspringen, ungültiges Datum wirft Fehler statt Infinite Loop
+- [x] **TEST-04**: CPM-Edge-Cases: einzelner Node (nur Start+End), disconnected Subgraph, Zyklus-Erkennung, Fehlercode-Prüfung via `ComputeError.code`
 
 ### SNAP — Snapshot-Verbesserungen
 
@@ -123,10 +123,10 @@
 | BUG-03 | Phase 1 | Pending |
 | BUG-04 | Phase 1 | Pending |
 | BUG-05 | Phase 1 | Pending |
-| TEST-01 | Phase 1 | Pending |
-| TEST-02 | Phase 1 | Pending |
-| TEST-03 | Phase 1 | Pending |
-| TEST-04 | Phase 1 | Pending |
+| TEST-01 | Phase 1 | Complete |
+| TEST-02 | Phase 1 | Complete |
+| TEST-03 | Phase 1 | Complete |
+| TEST-04 | Phase 1 | Complete |
 | SNAP-01 | Phase 1 | Pending |
 | SNAP-02 | Phase 1 | Pending |
 | UI-FOUND-01 | Phase 2 | Pending |
