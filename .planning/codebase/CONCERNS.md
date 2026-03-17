@@ -1,168 +1,203 @@
-# CONCERNS.md — Technical Debt, Issues & Areas of Concern
+# Codebase Concerns
 
-> Generated: 2026-03-16
-
-## Summary
-
-PathWeaver is a relatively clean, focused codebase. Most concerns are manageable for a v1 product. No critical blockers.
-
----
+**Analysis Date:** 2026-03-17
 
 ## Tech Debt
 
-### Silent Error Suppression
-- **Where:** Multiple empty/silent catch blocks throughout `web/src/`
-- **Impact:** Errors swallowed silently, hard to debug production issues
-- **Fix:** Log errors or surface them through error state
+**TypeScript `as any` casts — ReactFlow integration boundary:**
+- Issue: 26+ `as any` casts throughout codebase, concentrated in `GraphCanvas.tsx` and `serialize.ts`. These are necessary bridges between ReactFlow's untyped Node/Edge generics and app's typed data shapes rather than careless shortcuts.
+- Files: `web/src/components/GraphCanvas.tsx` (lines 69, 85, 89, 106, 115, 134-136, 199, 202, 221, 224, 227, 306-308, 311-312), `web/src/graph/TaskNode.tsx` (lines 102, 132, 161, 167), `web/src/components/AppToolbar.tsx` (lines 245-246)
+- Impact: Reduces type safety at ReactFlow boundaries, making it harder to catch data shape mismatches. Removing all casts without proper typed generics causes cascade of TypeScript errors.
+- Fix approach: Categorize casts into "true unknown input" (JSON parsing → use type guards), "ReactFlow boundary" (should become typed generics with discriminated unions), and "lazy shortcuts" (proper narrowing). Fix `serialize.ts` independently first, then refactor ReactFlow state as `Node<TaskData | StartData | EndData>` with discriminated unions throughout `GraphCanvas.tsx`, `AppToolbar.tsx`, and node components.
 
-### Excessive `as any` / Type Casting
-- **Where:** 44+ instances across files, especially in `web/src/components/GraphCanvas.tsx` and `web/src/persistence/serialize.ts`
-- **Impact:** TypeScript safety bypassed; runtime type errors possible
-- **Fix:** Introduce proper type guards and narrowing
+**Incomplete localStorage error handling — silent failure pattern:**
+- Issue: `saveCurrent()`, `loadCurrent()`, `loadSnapshot()`, `deleteSnapshot()` catch errors silently with `console.error()` but return undefined/empty arrays, masking data loss. Errors are logged but not propagated to user.
+- Files: `web/src/persistence/autosave.ts` (lines 10-23, 25-34, 59-62, 76-85, 87-96)
+- Impact: Users lose data (project state disappears) with no visible error message. Migration failures (e.g., key name changes, JSON structure changes) become invisible until user reopens app and finds graph empty.
+- Fix approach: For reads (`loadCurrent`, `loadSnapshot`): return `{ ok: false, error: string }` instead of undefined, propagate to UI as banner. For writes: `saveCurrent` already returns `SaveResult`; extend pattern to snapshots. Add migration function that runs once on startup, checks old key names, migrates data, logs completion.
 
-### Unsafe LocalStorage Operations
-- **Where:** `web/src/persistence/autosave.ts`
-- **Impact:** No error handling for storage quota exceeded; no bounds checking
-- **Fix:** Wrap in try/catch, handle `QuotaExceededError`
-
-### Race Conditions with setTimeout
-- **Where:** `web/src/components/GraphCanvas.tsx`
-- **Impact:** Timing-dependent UI behavior; may cause stale state bugs
-- **Fix:** Use React's `useEffect` cleanup or refs instead of raw setTimeout
+**Zustand and immer dependencies removed but not verified:**
+- Issue: Both dependencies are no longer imported in codebase (`package.json` confirms removal), but initial analysis marked these as risks. Removal was verified post-hoc in STATE.md but creates risk if new code accidentally re-introduces usage without seeing `package.json`.
+- Files: `web/package.json` (no zustand, immer imports)
+- Impact: Low — current state is clean. Risk is human: if Zustand is needed in future (e.g., for cross-component state), developer must explicitly add it back.
+- Fix approach: Document that both are intentionally removed in favor of React hooks. If global state becomes necessary, use Zustand; dependency will be clearly visible in package.json.
 
 ---
 
-## Known Bugs / Risks
+## Known Bugs
 
-### Type Safety Gap with startDate Prop
-- **Where:** `web/src/cpm/types.ts`, `web/src/components/GraphCanvas.tsx`
-- **Impact:** startDate passed as optional string but not validated before date arithmetic
-- **Fix:** Validate ISO date format before passing to `workdays.ts`
+**setTimeout validation closure capturing stale nodes/edges state:**
+- Symptoms: Graph validation error state may lag one interaction behind. Autosave fires with potentially stale nodes/edges.
+- Files: `web/src/components/GraphCanvas.tsx` (lines 111-127)
+- Trigger: Create a node, immediately make a graph error (e.g., connect to Start) — the error banner may not appear until the next change, and autosave captures the stale state.
+- Workaround: Wait for the next change to see validation errors. Autosave is logged but stale writes are never read back (validation occurs on load), so data is never corrupted.
+- Root cause: `validate` is a `useCallback` with `[nodes, edges]` deps, so it's recreated on every state change. The `setTimeout(() => validate(), 300)` in effect line 113 captures the dependency closure at effect-run time. If nodes/edges change again before the timeout fires, the timeout captures the old validate function with old closure values.
 
-### Potential ID Collisions
-- **Where:** `web/src/components/GraphCanvas.tsx` (node ID generation)
-- **Impact:** Duplicate node IDs could corrupt graph state
-- **Fix:** Use `crypto.randomUUID()` instead of timestamp-based IDs
+**JSON Schema allows `computed` field but does not document it:**
+- Symptoms: Exported JSON files contain optional `computed` field (CPM results) that `json-schema.v1.json` may not document. Round-trip validation (export → import → re-validate) may fail if schema is strict.
+- Files: `web/src/persistence/serialize.ts` (line 39 exports computed), `docs/json-schema.v1.json` (must check if `computed` property exists)
+- Trigger: Export a project with computed results, then re-import it and validate against schema.
+- Workaround: Remove `computed` from exported JSON (it is always recalculated on import anyway).
+- Root cause: `toProjectJSON` includes `computed` for reference, but it's derived data. `fromProjectJSON` ignores it. Schema should either allow it as optional or export should exclude it.
 
-### Snapshot ID Collisions
-- **Where:** `web/src/persistence/autosave.ts`
-- **Impact:** Snapshots created within same millisecond could collide
-- **Fix:** Add random suffix to snapshot keys
-
----
-
-## Security
-
-### No JSON Input Validation
-- **Where:** `web/src/persistence/serialize.ts` (import path)
-- **Impact:** Malformed or oversized JSON files could cause `JSON.parse` to throw or hang
-- **Fix:** Validate structure and size before parsing; use schema validation against `docs/json-schema.v1.json`
-
-### Unencrypted LocalStorage
-- **Where:** `web/src/persistence/autosave.ts`
-- **Impact:** Project data visible in browser dev tools; shared computer risk
-- **Severity:** Low — no authentication or sensitive personal data involved
-- **Fix:** Not critical for this use case; document as known limitation
-
-### DOM Manipulation via dom-to-image-more
-- **Where:** `web/src/components/AppToolbar.tsx` (PNG export)
-- **Impact:** Third-party library reads full DOM; potential XSS if node titles contain HTML
-- **Fix:** Sanitize node title input; consider native Canvas API
+**App.test.tsx smoke test does not assert visual content:**
+- Symptoms: Test passes vacuously — it only checks that `rf__wrapper` div exists, not that any nodes are rendered or styled correctly.
+- Files: `web/src/App.test.tsx` (line 11 only checks wrapper presence)
+- Trigger: Render the app. It never fails because JSDOM returns zeroes for all `getBoundingClientRect` calls.
+- Workaround: Don't rely on JSDOM tests for visual assertions. Use Playwright E2E for full rendering checks.
+- Root cause: ReactFlow 11 requires actual browser APIs (`DOMMatrixReadOnly`, `getScreenCTM()`, computed styles). JSDOM stubs are incomplete. Existing `vitest.setup.ts` polyfills `ResizeObserver` but not these deeper APIs.
 
 ---
 
-## Performance
+## Security Considerations
 
-### Validation Called Multiple Times Per Action
-- **Where:** `web/src/graph/validate.ts` called from `GraphCanvas.tsx`
-- **Impact:** O(V+E) validation runs redundantly on every edge/node change
-- **Fix:** Debounce validation or batch with CPM compute
+**No authentication or authorization model:**
+- Risk: All data is public (localStorage is per-browser). No server-side persistence. If deployed as shared tool, any user sees any other user's data if localStorage is shared.
+- Files: `web/src/persistence/autosave.ts`, `web/src/components/AppToolbar.tsx`
+- Current mitigation: Single-user tool (browser-local storage only). No server sync. Each browser/user has isolated data.
+- Recommendations: For future multi-user version: (1) Add authentication (OAuth/JWT), (2) Move localStorage to server-synced database, (3) Add row-level permissions on projects, (4) Add audit log for export/share actions.
 
-### Full Snapshots in LocalStorage (10×)
-- **Where:** `web/src/persistence/autosave.ts`
-- **Impact:** Large graphs stored 10 times; may hit 5MB localStorage quota
-- **Fix:** Store diffs or compress snapshots; enforce size limit per snapshot
+**JSON import accepts any file structure without origin validation:**
+- Risk: User can import malicious JSON files that execute arbitrary parsing code or overflow localStorage.
+- Files: `web/src/components/AppToolbar.tsx` (lines 48-66 file import handler)
+- Current mitigation: `validateProjectJSON` checks for required fields and structure. File size is limited only by browser memory. Large files may crash tab.
+- Recommendations: Add file size limit before parsing (e.g., 10MB). Validate JSON structure strictly before parsing (use schema validation library like Zod/Joi). Consider sandboxing import in Web Worker.
 
-### DOM Freezing During PNG Export
-- **Where:** `web/src/components/AppToolbar.tsx`
-- **Impact:** UI freezes for 1–3s on large graphs during PNG export
-- **Fix:** Use Web Worker or offscreen canvas; show loading indicator
+**PNG export may capture sensitive data in UI:**
+- Risk: If toolbar buttons with sensitive labels (e.g., "Export to Client Server") are visible in graph during export, they appear in PNG. Exported PNG is shared with sensitive metadata.
+- Files: `web/src/components/AppToolbar.tsx` (lines 68-99 PNG export with filter)
+- Current mitigation: Filter excludes `.react-flow__controls`, `.react-flow__panel`, `.react-flow__minimap`. AppToolbar is outside `.react-flow`, so it's excluded. Safe to export.
+- Recommendations: Add UI hint that export is public-shareable. Add metadata strip option (remove titles, dates, durations from export). Test that toolbar is never captured.
+
+---
+
+## Performance Bottlenecks
+
+**Graph rendering with 50+ nodes causes layout thrashing:**
+- Problem: ReactFlow recalculates layout and styles on every state change. With 50+ nodes, each keystroke in node title triggers full graph re-render and DOM measurement.
+- Files: `web/src/components/GraphCanvas.tsx` (lines 209-231 styledNodes memo, lines 233-258 styledEdges memo)
+- Cause: `styledNodes` and `styledEdges` are memoized but depend on `nodes` and `edges`. Each node edit (`onEditTask` at line 67-72) triggers setNodes, which runs all memos. No virtualization.
+- Improvement path: (1) Memoize individual node/edge styling functions with `React.memo`. (2) Use `useDeferredValue` for non-critical style updates. (3) For 100+ nodes, implement virtualization (ReactFlow's built-in viewport-based culling may be enough). (4) Batch title edits with debounce (already 200ms in TaskNode.tsx line 29, but full graph still re-renders).
+
+**Autosave writes to localStorage every 300ms during editing:**
+- Problem: Lines 113-125 in GraphCanvas.tsx serialize entire project and write to localStorage on every nodes/edges change (batched at 300ms). No deduplication — two identical states cause two writes.
+- Files: `web/src/components/GraphCanvas.tsx` (lines 113-125)
+- Cause: Validation + autosave happen in same effect. Every keystroke (title edit) schedules a save.
+- Improvement path: (1) Debounce longer for autosave than validation (validation 0ms, save 1000ms). (2) Compare project JSON before writing (skip if identical). (3) Only save when user focuses away from node inputs. (4) Batch multiple saves in a single effect.
+
+**CPM computation blocks main thread for large graphs:**
+- Problem: `computeCPM` (topological sort + path computation) is synchronous. Graphs with 100+ nodes and 200+ edges may take 50-100ms, freezing UI.
+- Files: `web/src/cpm/compute.ts` (lines 5-35 topo sort, entire function blocking)
+- Cause: No parallelization or Web Worker. Full sync computation.
+- Improvement path: (1) Move `computeCPM` to Web Worker (separate thread). (2) Return a Promise from memoized hook that updates state when done. (3) Show loading state while computing. (4) Cache result, only recompute when graph structure changes (not on style-only changes).
 
 ---
 
 ## Fragile Areas
 
-### CPM Compute Function
-- **Where:** `web/src/cpm/compute.ts` (174 lines, 4-pass algorithm)
-- **Risk:** Complex algorithm with limited test coverage (61 lines of tests)
-- **Concern:** Edge cases around cycles, single-node graphs, disconnected subgraphs
-- **Fix:** Add more unit tests; especially for error paths and edge cases
+**GraphCanvas component — 330+ lines of complex state management:**
+- Files: `web/src/components/GraphCanvas.tsx`
+- Why fragile: Single component manages nodes, edges, validation, autosave, CPM computation, styling, context menus, and keyboard shortcuts. Each feature has side effects that depend on others.
+- Safe modification: (1) Extract pure logic into separate files: validation (done: `graph/validate.ts`), serialization (done: `persistence/serialize.ts`), CPM (done: `cpm/compute.ts`). (2) Extract state hooks: `useGraphState`, `useValidation`, `useAutosave`, `useCPM`. (3) Test each hook independently with unit tests, not E2E. (4) Add regression tests for edge cases: empty graph, duplicate node IDs, disconnected subgraphs.
+- Test coverage: Validation logic is tested (`graph/validate.test.ts`), CPM logic is tested (`cpm/compute.test.ts`), but GraphCanvas integration is not. App.test.tsx only smoke-tests rendering.
 
-### Serialization Bidirectional Transform
-- **Where:** `web/src/persistence/serialize.ts`
-- **Risk:** `toProjectJSON()` / `fromProjectJSON()` are inverses; round-trip correctness not tested
-- **Fix:** Add round-trip serialization tests
+**serialize.ts — No strict type guards on input:**
+- Files: `web/src/persistence/serialize.ts` (lines 43-71 fromProjectJSON has unsafe `as` casts)
+- Why fragile: `fromProjectJSON` assumes input structure without type narrowing. It casts JSON to `TaskNodeJson` without checking all required fields. If JSON is malformed (missing `id`, `type`, etc.), the function returns silently incorrect data.
+- Safe modification: (1) Use Zod or io-ts for schema validation before deserialization. (2) Add explicit type guards: `function isTaskNode(x: unknown): x is TaskNodeJson { ... }`. (3) Return `{ ok, error, data? }` instead of throwing, so callers can handle invalid input gracefully. (4) Add tests: import malformed JSON, verify error is caught.
+- Test coverage: `serialize.test.ts` exists but is limited. Need tests for: missing fields, wrong types, extra fields, edge case values (empty string titles, zero duration).
 
-### LocalStorage Key Management
-- **Where:** `web/src/persistence/autosave.ts`
-- **Risk:** Keys hardcoded as strings (`CURRENT_KEY`, snapshot prefix); namespace collisions possible
-- **Fix:** Use a namespaced prefix (e.g., `pathweaver_v1_`)
+**TaskNode inline style coupling to ReactFlow layout:**
+- Files: `web/src/graph/TaskNode.tsx` (lines 37-48 isCritical ? ... inline styles)
+- Why fragile: Node styles are split between inline `style={{}}` (layout, backdrop, shadow) and Tailwind classes (unlikely, not in current code). If design tokens in `graph/theme.ts` change, colors must be updated manually here. If ReactFlow changes how it measures node size, the hardcoded `minWidth: 180` may break layout.
+- Safe modification: (1) Extract critical/non-critical node styles to `graph/theme.ts` as named objects: `TASK_NODE_CRITICAL`, `TASK_NODE_NORMAL`. (2) Import and use: `style={{ ...TASK_NODE_CRITICAL }}`. (3) Update theme.ts once, all nodes update. (4) Add visual regression test (Playwright screenshot) to catch theme changes.
+- Test coverage: `TaskNode.test.tsx` exists but likely doesn't test styling. Add snapshot test.
+
+**Validation logic split between two files:**
+- Files: `web/src/graph/validate.ts` (ReactFlow graph validation), `web/src/persistence/serialize.ts` (JSON schema validation)
+- Why fragile: Both files validate project structure but independently. `validateGraph` checks for cycles/orphans/start-end rules. `validateProjectJSON` checks JSON schema. If one is updated (e.g., add new error rule), the other may not match. ImportError message from `AppToolbar` shows `validateProjectJSON` errors, but GraphCanvas shows `validateGraph` errors — different validation contexts.
+- Safe modification: (1) Consolidate into single `validate()` that takes both ReactFlow nodes and JSON structure. (2) Run both checks, return union of errors. (3) Document which errors come from which validator. (4) Add integration test: create invalid graph in UI, export to JSON, import into fresh app, verify errors are identical.
+- Test coverage: Both validators have unit tests. Missing: round-trip test (create invalid graph, serialize, deserialize, validate again).
 
 ---
 
 ## Scaling Limits
 
-### No Holiday Support in Workday Calculations
-- **Where:** `web/src/cpm/workdays.ts`
-- **Impact:** `addWorkdays()` skips weekends but ignores public holidays
-- **Fix:** Inject holiday calendar as parameter
+**localStorage 5-10MB limit per origin:**
+- Current capacity: ~10 snapshots at ~500KB each = 5MB (90% full on mobile browsers). Each snapshot stores entire project JSON including full node/edge list.
+- Limit: QuotaExceededError thrown when sum of all localStorage entries exceeds browser limit (usually 5-10MB).
+- Scaling path: (1) Implement automatic snapshot cleanup (delete oldest when limit is hit). (2) Implement delta snapshots (store only changes from previous, not full project). (3) Add server sync (move to database for unlimited storage). (4) Gzip compress snapshots before storing (reduces size by ~3-4x).
 
-### Performance Degradation at 500+ Nodes
-- **Where:** `web/src/components/GraphCanvas.tsx` + ReactFlow rendering
-- **Impact:** Re-renders become slow on very large graphs
-- **Fix:** Virtualize off-screen nodes; use ReactFlow's `nodesDraggable` optimizations
+**ReactFlow rendering performance with 200+ nodes:**
+- Current capacity: Smooth interaction at ~50 nodes, lag noticeable at 100+, severe lag at 200+.
+- Limit: Canvas measurement, layout, and re-render on every state change. No virtualization.
+- Scaling path: (1) Implement viewport-based culling (ReactFlow supports this natively, must enable). (2) Use Web Worker for CPM computation. (3) Batch node updates (collect multiple changes, apply once). (4) Use React.memo on node components and pass only necessary props.
 
----
-
-## Dependencies
-
-### dom-to-image-more (Unmaintained Fork)
-- **Where:** `web/package.json`, used in `AppToolbar.tsx`
-- **Version:** 3.7.1
-- **Risk:** Fork of unmaintained library; no recent security updates
-- **Fix:** Replace with `html-to-image` (actively maintained) or native Canvas API
-
-### ReactFlow 11.x (Pre-v12 API)
-- **Where:** `web/package.json`
-- **Risk:** ReactFlow v12 has breaking API changes; upgrading will require significant refactor
-- **Fix:** Track ReactFlow changelog; plan upgrade when stability warrants it
-
-### Zustand Installed but Barely Used
-- **Where:** `web/package.json` — Zustand 5.0.8
-- **Risk:** Adds bundle weight without benefit; indicates incomplete state management refactor
-- **Fix:** Either adopt Zustand for global state or remove dependency
+**JSON export file size grows linearly with graph size:**
+- Current capacity: 100 nodes × 200 edges ≈ 50KB JSON file.
+- Limit: No hard limit, but very large projects (500+ nodes) → multi-MB JSON files that are slow to upload, share, or import.
+- Scaling path: (1) Implement binary export format (Protocol Buffers, MessagePack) instead of JSON. (2) Implement sparse representation (only store non-default properties). (3) Compress export option. (4) Implement incremental export (only changed nodes/edges since last export).
 
 ---
 
-## Test Gaps
+## Dependencies at Risk
 
-| Area | Status |
-|------|--------|
-| CPM algorithm (happy paths) | Covered (`compute.test.ts`) |
-| App smoke test | Covered (`App.test.tsx`) |
-| CPM error paths / edge cases | Not covered |
-| Serialization round-trip | Not covered |
-| Snapshot persistence | Not covered |
-| GraphCanvas integration | Not covered |
-| AppToolbar (import/export) | Not covered |
-| Graph validation rules | Not covered |
-| Playwright E2E tests | Framework installed, tests minimal |
+**html-to-image 1.11.13 — migration from dom-to-image-more completed:**
+- Risk: Replaced `dom-to-image-more` with `html-to-image` in Phase 1. `dom-to-image-more` is unmaintained (last update 2020), `html-to-image` is more active but smaller community.
+- Impact: PNG export now uses `html-to-image`. If it introduces bugs or performance regressions, the app's only export feature is affected.
+- Migration plan: Monitor `html-to-image` issue tracker. If critical bugs appear, evaluate alternatives: `screenshot-js` (Puppeteer-based, requires server), `canvas-based rendering` (rewrite export to use HTML canvas directly).
+
+**ReactFlow 11.11.4 — major version dependency:**
+- Risk: ReactFlow 11 is actively maintained but significant version upgrade from v10. Heavy reliance on ReactFlow internals (node rendering, handles, layout). Tight coupling via `as any` casts means updates to ReactFlow may require significant refactoring.
+- Impact: ReactFlow update may break node rendering, handle positions, or validation rules.
+- Migration plan: Pin ReactFlow version until full TypeScript typing is in place. When updating, test: (1) node rendering visually, (2) handle positioning and connections, (3) panel rendering (controls, minimap), (4) custom node styles.
+
+**React 19.1.1 — latest version with potential breaking changes:**
+- Risk: React 19 introduced new hooks (useActionState, useFormStatus) and potential behavior changes in useEffect cleanup. Latest release may have undiscovered edge cases.
+- Impact: New hooks are opt-in, so usage is safe. Risk is future React updates requiring refactoring.
+- Migration plan: Monitor React changelogs. Pin version for production stability. Test after any React update: (1) All hooks (useCallback, useEffect, useState), (2) Autosave behavior, (3) Event handlers.
 
 ---
 
-## Low-Priority / Cosmetic
+## Missing Critical Features
 
-- No `CHANGELOG.md` or versioned release notes
-- `TopRightDebug.tsx` component is development tooling — should be removed or hidden in production builds
-- `buildStamp.ts` generates build timestamp but unclear if surfaced in UI
-- `web/public/vite.svg` and `assets/react.svg` are boilerplate files not cleaned up from Vite template
+**No multi-user collaboration:**
+- Problem: Tool is single-browser, single-user only. No way to share projects in real-time or with feedback comments.
+- Blocks: Teams using PathWeaver cannot collaborate. Export-review-import workflow is manual.
+- Priority: Post-v1.0 feature (not blocking MVP).
+
+**No offline detection or sync state:**
+- Problem: localStorage is implicit. No indicator whether data is synced, when last save occurred, or if there are unsaved changes.
+- Blocks: Users don't know if their data is safe. Closing browser during autosave may lose changes.
+- Priority: Medium (add "Last saved X seconds ago" indicator and "unsaved changes" badge).
+
+**No data validation on import — corrupted projects can be imported:**
+- Problem: `validateProjectJSON` checks structure but not semantic validity. A project with negative durations, missing node data, or orphaned nodes passes validation and imports silently.
+- Blocks: Users can corrupt their project by importing malformed JSON, then can't fix it in UI.
+- Priority: Medium (add stricter validation before import).
+
+---
+
+## Test Coverage Gaps
+
+**GraphCanvas integration — untestable in JSDOM:**
+- What's not tested: Node rendering positions, styles, connections, mouse events, keyboard shortcuts (T key). CPM highlighting visual state. Autosave trigger timing.
+- Files: `web/src/components/GraphCanvas.tsx`
+- Risk: Critical features (CPM highlighting, autosave) may break unnoticed. Regression in node positioning could go unfound.
+- Priority: High — add Playwright E2E tests for: (1) Create node via T key, (2) Edit title and duration, (3) Connect nodes, (4) Verify CPM highlighting on critical path, (5) Export PNG and verify no UI controls in image, (6) Verify autosave fires and loads on refresh.
+
+**Persistence round-trip — partial coverage:**
+- What's not tested: Export project, modify JSON manually, re-import with validation errors. Snapshot load/delete edge cases. localStorage quota exceeded behavior.
+- Files: `web/src/persistence/autosave.ts`, `web/src/persistence/serialize.ts`, `web/src/components/AppToolbar.tsx`
+- Risk: Data loss on corrupt import. Quota errors not shown to user. Snapshot metadata (name field) not tested.
+- Priority: Medium — add tests: (1) Export, corrupt JSON, import and verify error shown. (2) Hit quota limit, verify error message displayed. (3) Create snapshot with name, load it, verify name preserved. (4) Delete snapshot, verify it's removed from list.
+
+**StartNode date input — no date validation tests:**
+- What's not tested: ISO date validation. Invalid dates (e.g., "2026-13-01"). Changing date and triggering CPM recalc. Date format consistency.
+- Files: `web/src/graph/StartNode.tsx`
+- Risk: Invalid dates may silently break CPM computation. User may enter date in wrong format and wonder why it's ignored.
+- Priority: Low — add unit tests for `isValidISODate()` and integration test: change start date, verify CPM updates, export and verify date is in JSON.
+
+---
+
+*Concerns audit: 2026-03-17*

@@ -1,142 +1,226 @@
-# STRUCTURE.md — PathWeaver Directory Layout & Organization
+# Codebase Structure
 
-> Generated: 2026-03-16
+**Analysis Date:** 2026-03-17
 
 ## Directory Layout
 
 ```
-PathWeaver/
-├── README.md                          # Project overview and quick start
-├── .github/                           # GitHub configuration
-├── .planning/
-│   └── codebase/                      # Codebase documentation
+pathweaver/
+├── web/                               # Browser application (React + Vite)
+│   ├── src/
+│   │   ├── cpm/                       # Critical Path Method algorithm
+│   │   │   ├── compute.ts             # CPM forward/backward pass engine
+│   │   │   ├── compute.test.ts        # CPM algorithm tests
+│   │   │   ├── types.ts               # Core data types (ProjectJSON, ComputedNode, etc.)
+│   │   │   ├── workdays.ts            # Date arithmetic (skip weekends)
+│   │   │   └── workdays.test.ts       # Date calculation tests
+│   │   ├── graph/                     # Node components & design system
+│   │   │   ├── StartNode.tsx          # Project start date node (green)
+│   │   │   ├── TaskNode.tsx           # Task/activity node (editable title/duration)
+│   │   │   ├── TaskNode.test.tsx      # TaskNode component tests
+│   │   │   ├── EndNode.tsx            # Project end/goal node (purple)
+│   │   │   ├── theme.ts               # Design tokens (colors, shadows, transitions)
+│   │   │   ├── validate.ts            # Graph validation (cycles, orphans, structure)
+│   │   │   └── validate.test.ts       # Validation tests
+│   │   ├── components/                # UI components
+│   │   │   ├── GraphCanvas.tsx        # Main ReactFlow canvas wrapper & orchestrator
+│   │   │   ├── AppToolbar.tsx         # Export/Import/Snapshots toolbar
+│   │   │   ├── HelpOverlay.tsx        # Help modal content & keyboard shortcuts
+│   │   │   ├── Modal.tsx              # Reusable modal wrapper
+│   │   │   ├── ContextMenu.tsx        # Right-click delete menu
+│   │   │   ├── Button.tsx             # Styled button component
+│   │   │   ├── Banner.tsx             # Informational/error banner
+│   │   │   └── TopRightDebug.tsx      # Debug panel (dev only)
+│   │   ├── persistence/               # LocalStorage & import/export
+│   │   │   ├── autosave.ts            # saveCurrent/loadCurrent, snapshots
+│   │   │   ├── autosave.test.ts       # Autosave tests
+│   │   │   ├── serialize.ts           # ProjectJSON ↔ ReactFlow conversion
+│   │   │   └── serialize.test.ts      # Serialization tests
+│   │   ├── assets/                    # Static images (favicon, etc.)
+│   │   ├── App.tsx                    # Root component (header + canvas + help)
+│   │   ├── App.test.tsx               # Root app tests
+│   │   ├── App.css                    # Global/app-level styles (minimal)
+│   │   ├── index.css                  # Tailwind imports & global CSS
+│   │   ├── buildStamp.ts              # Build metadata (git hash, timestamp)
+│   │   └── main.tsx                   # React entrypoint (createRoot)
+│   ├── dist/                          # Production build output (gitignored in dev)
+│   ├── public/                        # Static assets (favicon.svg)
+│   ├── index.html                     # HTML template entry point
+│   ├── vite.config.ts                 # Vite build & test config
+│   ├── vitest.setup.ts                # Vitest globals setup (jsdom, Testing Library)
+│   ├── tsconfig.json                  # TypeScript project references
+│   ├── tsconfig.app.json              # App TypeScript config (strict)
+│   ├── tsconfig.node.json             # Build tool TypeScript config
+│   ├── eslint.config.js               # ESLint rules (prettier integration)
+│   ├── package.json                   # Dependencies (React 19, ReactFlow, Vite, etc.)
+│   └── package-lock.json              # Lockfile
 ├── docs/
-│   ├── json-format.md                 # Data format specification
-│   ├── json-schema.v1.json            # JSON schema definition
-│   └── testdaten/
-│       └── pathweaver_test.json       # Sample test data
-├── prds/
-│   ├── 00_mvp.md                      # MVP requirements document
-│   └── 00_mvp_plan.md                 # MVP planning document
-└── web/                               # Main application (React)
-    ├── package.json
-    ├── index.html                     # Entry HTML
-    ├── vite.config.ts
-    ├── vitest.setup.ts
-    ├── eslint.config.js               # ESLint flat config
-    ├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
-    ├── public/
-    │   └── netzplan.png               # Reference network diagram image
-    └── src/
-        ├── main.tsx                   # App entry point (DOM mount)
-        ├── App.tsx                    # Root component (layout wrapper)
-        ├── App.test.tsx
-        ├── App.css / index.css        # Styles (global + Tailwind)
-        ├── buildStamp.ts              # Build timestamp utility
-        ├── assets/                    # Static assets (SVGs)
-        ├── types/
-        │   └── dom-to-image-more.d.ts # Third-party type definitions
-        ├── components/                # React UI components
-        │   ├── GraphCanvas.tsx        # Main canvas orchestrator (378 lines)
-        │   ├── AppToolbar.tsx         # Toolbar (export, import, snapshots) (237 lines)
-        │   ├── Button.tsx             # Reusable button (26 lines)
-        │   ├── Banner.tsx             # Info/error banner (11 lines)
-        │   ├── Modal.tsx              # Modal dialog (37 lines)
-        │   ├── ContextMenu.tsx        # Right-click menu (39 lines)
-        │   ├── HelpOverlay.tsx        # Help/legend overlay (26 lines)
-        │   └── TopRightDebug.tsx      # Debug info (38 lines)
-        ├── graph/                     # ReactFlow node/edge components
-        │   ├── StartNode.tsx          # Non-deletable start node
-        │   ├── TaskNode.tsx           # Task node with inline editing (3×3 grid)
-        │   ├── EndNode.tsx            # Non-deletable end node
-        │   ├── theme.ts               # Node/edge styling & colors
-        │   └── validate.ts            # Graph validation rules
-        ├── cpm/                       # CPM business logic (UI-independent)
-        │   ├── types.ts               # Domain types: ProjectJSON, ComputedResult, etc. (64 lines)
-        │   ├── compute.ts             # CPM algorithm (topological sort, forward/backward pass) (174 lines)
-        │   ├── compute.test.ts        # CPM unit tests (61 lines)
-        │   └── workdays.ts            # Workday/date arithmetic (47 lines)
-        └── persistence/               # Data storage layer
-            ├── serialize.ts           # ReactFlow ↔ ProjectJSON serialization
-            └── autosave.ts            # LocalStorage management, snapshots (max 10)
+│   ├── json-format.md                 # ProjectJSON schema documentation
+│   ├── json-schema.v1.json            # JSON Schema validator (v1.0)
+│   ├── testdaten/                     # Example project files
+│   │   ├── doenerladen-tagesablauf.json
+│   │   └── mars-kolonisierung.json
+│   └── image.png                      # Screenshot for README
+├── .planning/
+│   └── codebase/                      # GSD codebase analysis docs (you are here)
+├── .github/
+│   └── workflows/                     # CI/CD pipelines (deploy to Hetzner)
+├── prds/                              # Product requirement documents
+├── .claude/                           # Claude work context
+├── README.md                          # Main project overview
+├── CONTRIBUTING.md                    # Development guidelines
+├── CHANGELOG.md                       # Version history
+└── .gitignore                         # Git ignores (dist, node_modules, etc.)
 ```
+
+## Directory Purposes
+
+**`web/src/cpm/`:**
+- Purpose: Pure algorithm layer — computes ES/EF/LS/LF, identifies critical path, validates graph rules
+- Contains: TypeScript modules (no React dependencies)
+- Key files: `compute.ts` (main engine), `types.ts` (ProjectJSON, ComputedResult), `workdays.ts` (date math)
+- Independently testable; can be extracted to separate package
+
+**`web/src/graph/`:**
+- Purpose: ReactFlow node components + design system
+- Contains: StartNode, TaskNode, EndNode components; validation logic; color/shadow tokens
+- Key files: `theme.ts` (single source of truth for visual design), `validate.ts` (graph rules), `TaskNode.tsx` (main editable node)
+- Theme tokens referenced by all components for consistent glassmorphism styling
+
+**`web/src/components/`:**
+- Purpose: Application UI layer — interaction handlers, modals, toolbars
+- Contains: GraphCanvas (orchestrator), AppToolbar (export/import/snapshots), HelpOverlay, Modal, Button, ContextMenu
+- Key files: `GraphCanvas.tsx` (state machine + ReactFlow setup), `AppToolbar.tsx` (file I/O + snapshots)
+- No business logic; purely presentation + event handling
+
+**`web/src/persistence/`:**
+- Purpose: LocalStorage operations + project format conversion
+- Contains: Autosave (saveCurrent/loadCurrent/snapshots), serialization (ProjectJSON ↔ ReactFlow)
+- Key files: `autosave.ts` (storage), `serialize.ts` (format conversion)
+- Handles schema versioning and validation errors
+
+**`web/src/assets/`:**
+- Purpose: Static media (icons, images)
+- Contains: SVG/PNG files used by components
+- Currently minimal; favicon in `/public/`
+
+**`docs/`:**
+- Purpose: Documentation for users and developers
+- Contains: JSON schema docs, example project files, screenshots
+- Key files: `json-format.md` (specification), `json-schema.v1.json` (formal validator)
 
 ## Key File Locations
 
-| Role | Path |
-|------|------|
-| App entry | `web/src/main.tsx` |
-| Root component | `web/src/App.tsx` |
-| Main canvas | `web/src/components/GraphCanvas.tsx` |
-| CPM algorithm | `web/src/cpm/compute.ts` |
-| Domain types | `web/src/cpm/types.ts` |
-| Serialization | `web/src/persistence/serialize.ts` |
-| LocalStorage/Snapshots | `web/src/persistence/autosave.ts` |
-| Graph validation | `web/src/graph/validate.ts` |
-| Node styling | `web/src/graph/theme.ts` |
-| Vite config | `web/vite.config.ts` |
-| TypeScript config | `web/tsconfig.app.json` |
-| ESLint config | `web/eslint.config.js` |
-| Test setup | `web/vitest.setup.ts` |
+**Entry Points:**
+- `web/index.html`: HTML template; loads `/src/main.tsx`
+- `web/src/main.tsx`: React entrypoint; calls createRoot on #root, renders App
+- `web/src/App.tsx`: Root component; renders header + GraphCanvas + HelpOverlay
+
+**Configuration:**
+- `web/vite.config.ts`: Vite build settings (React plugin, test config)
+- `web/tsconfig.app.json`: TypeScript compiler options (ES2022, strict mode, jsx: react-jsx)
+- `web/eslint.config.js`: ESLint config with Prettier integration
+- `web/package.json`: Project metadata, scripts, dependencies
+
+**Core Logic:**
+- `web/src/cpm/compute.ts`: Topological sort, forward/backward pass, critical path
+- `web/src/cpm/types.ts`: ProjectJSON, ComputedResult, error types
+- `web/src/graph/validate.ts`: Graph structural validation (cycles, orphans, reachability)
+
+**Testing:**
+- `web/vitest.setup.ts`: Vitest globals (jsdom environment, Testing Library cleanup)
+- `web/src/**/*.test.ts(x)`: Unit tests co-located with source files
+
+**Persistence:**
+- `web/src/persistence/autosave.ts`: LocalStorage API (saveCurrent, saveSnapshot, listSnapshots)
+- `web/src/persistence/serialize.ts`: toProjectJSON, fromProjectJSON, validateProjectJSON
 
 ## Naming Conventions
 
-### Files
-- **React components:** PascalCase — `GraphCanvas.tsx`, `TaskNode.tsx`, `Button.tsx`
-- **Utilities/modules:** camelCase — `compute.ts`, `serialize.ts`, `workdays.ts`
-- **Tests:** `{name}.test.ts[x]` — `compute.test.ts`, `App.test.tsx`
-- **Type definitions:** camelCase — `types.ts`
-- **Third-party overrides:** `{lib}.d.ts` — `dom-to-image-more.d.ts`
+**Files:**
+- React components: PascalCase (.tsx) — e.g., `StartNode.tsx`, `GraphCanvas.tsx`
+- Utilities/modules: camelCase (.ts) — e.g., `compute.ts`, `validate.ts`, `workdays.ts`
+- Tests: co-located with source, `.test.ts(x)` suffix — e.g., `compute.test.ts`, `TaskNode.test.tsx`
+- Config files: camelCase or kebab-case — `vite.config.ts`, `tsconfig.app.json`, `eslint.config.js`
 
-### Functions & Variables
-- **Functions:** camelCase — `computeCPM()`, `validateGraph()`, `toProjectJSON()`
-- **Event handlers:** `on` prefix — `onConnect()`, `onEditTask()`, `onNodeContextMenu()`
-- **State variables:** camelCase — `nodes`, `edges`, `errors`
-- **Constants:** UPPER_SNAKE_CASE — `CRITICAL_BG`, `MAX_SNAPSHOTS`, `CURRENT_KEY`
+**Directories:**
+- Feature modules: lowercase plural (cpm, graph, components, persistence)
+- Except `src/` itself and `dist/` (build output)
 
-### Types & Interfaces
-- **Props interfaces:** PascalCase + `Props` suffix — `ButtonProps`, `ModalProps`
-- **Domain types:** PascalCase — `ProjectJSON`, `ComputedResult`, `ComputeErrorCode`
-- **Type aliases:** PascalCase — `NodeId`, `Workday`
+**Functions:**
+- React components: PascalCase — `StartNode`, `AppToolbar`, `GraphCanvas`
+- Utilities: camelCase — `computeCPM`, `validateGraph`, `formatWorkdayToDate`
+- Event handlers: camelCase with `on` prefix — `onConnect`, `onEditTask`, `onExportClick`
+- Boolean predicates: camelCase with `is`/`has` prefix — `isValidISODate`, `isCritical`
 
-## Layer Organization
+**Variables:**
+- Constants: UPPER_SNAKE_CASE for design tokens — `COLOR_ACCENT`, `RADIUS_MD`, `SHADOW_SM`
+- Local/state: camelCase — `nodes`, `setEdges`, `errors`, `quotaError`
 
-The codebase is organized by technical layer, not by feature:
+**Types:**
+- PascalCase — `ProjectJSON`, `ComputedResult`, `AppNodeData`, `TaskNodeData`
+- Union types suffixed with union intent — `AppNodeData` (discriminated by type field)
+- Error classes: PascalCase — `ComputeError`
 
-```
-src/
-├── components/   → Presentation (React UI)
-├── graph/        → Graph visualization (ReactFlow nodes + validation)
-├── cpm/          → Business logic (algorithm, types — no UI dependencies)
-└── persistence/  → Data storage (serialization + LocalStorage)
-```
+## Where to Add New Code
 
-**CPM is fully decoupled from UI** — `web/src/cpm/` has no React imports and can be unit-tested in isolation.
+**New Feature (e.g., dependency markers, milestone highlighting):**
+- Core logic: Add to `src/cpm/` (e.g., new function in `compute.ts`, export in `types.ts`)
+- UI component: Add to `src/graph/` if node-related, or `src/components/` if toolbar/modal
+- Tests: Co-locate with implementation (`newFeature.test.ts`)
+- Example: Adding "milestone" node type would add StartMilestoneNode.tsx in graph/, update types in cpm/types.ts, add test
 
-## NPM Scripts
+**New Component/Module:**
+- Implementation: Create in appropriate directory (components/ for UI, cpm/ for algorithm, persistence/ for storage)
+- Naming: Use PascalCase for React components, camelCase for utilities
+- Pattern: Export named export + inline JSDoc comments for prop/return types
+- Tests: Create `ComponentName.test.tsx` in same directory immediately after implementation
 
-```bash
-npm run dev       # Start Vite dev server
-npm run build     # tsc + vite build
-npm run lint      # ESLint
-npm run preview   # Preview production build
-npm run test      # Vitest (unit tests)
-npm run test:ui   # Vitest with UI
-npm run e2e       # Playwright E2E tests
-```
+**Utilities & Helpers:**
+- Shared calculation logic: `src/cpm/` (algorithm-related) or new utility file in relevant module
+- UI utilities: Define inline in component file or create `src/components/utils.ts`
+- Example: Date formatting lives in `workdays.ts` because it's calculation-focused
 
-## Data Format
+## Special Directories
 
-`ProjectJSON` (defined in `web/src/cpm/types.ts`):
-```typescript
-{
-  settings: { version: '1.0', startDate?: string }
-  nodes: TaskNode[]        // id, type, title?, duration?, x?, y?
-  edges: Edge[]            // from, to
-  computed?: ComputedResult // ES, EF, LS, LF, slack, critical path
-}
-```
+**`web/dist/`:**
+- Purpose: Production build output
+- Generated: Yes (by `npm run build`)
+- Committed: No (in .gitignore)
+- Contents: Minified JS, CSS, and HTML for deployment
 
-Schema: `docs/json-schema.v1.json`
-Documentation: `docs/json-format.md`
-Test data: `docs/testdaten/pathweaver_test.json`
+**`web/public/`:**
+- Purpose: Static assets served as-is (favicon, etc.)
+- Generated: No
+- Committed: Yes
+- Contents: favicon.svg (custom network diagram icon)
+
+**`.planning/codebase/`:**
+- Purpose: GSD analysis documents (this file and siblings)
+- Generated: Yes (by GSD mapper)
+- Committed: Yes
+- Contents: ARCHITECTURE.md, STRUCTURE.md, CONVENTIONS.md, TESTING.md, CONCERNS.md, STACK.md, INTEGRATIONS.md
+
+**`node_modules/`:**
+- Purpose: Installed npm packages
+- Generated: Yes (by npm install)
+- Committed: No (in .gitignore)
+- Install: Run `npm install` in web/ directory
+
+## Import Patterns
+
+**Internal imports:**
+- Prefer relative imports for co-located modules: `import { computeCPM } from '../cpm/compute'`
+- Use absolute paths from `src/` root for cross-module: Not used (codebase uses relative imports)
+- No path aliases (tsconfig doesn't define them)
+
+**External imports:**
+- React: `import { useState, useCallback } from 'react'`
+- ReactFlow: `import { useNodesState, useEdgesState, addEdge } from 'reactflow'`
+- date-fns: `import { addDays } from 'date-fns'`
+- Icons: `import { HelpCircle, Download, Calendar } from 'lucide-react'`
+- Utilities: `import { toPng } from 'html-to-image'`
+
+---
+
+*Structure analysis: 2026-03-17*
