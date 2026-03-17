@@ -6,7 +6,6 @@ import { Button } from './Button'
 import { toPng } from 'html-to-image'
 import { Download, Upload, Layers, Image, Loader2 } from 'lucide-react'
 import type { Edge, Node } from 'reactflow'
-import { COLOR_SURFACE, COLOR_BORDER, COLOR_BG, COLOR_TEXT_MUTED, RADIUS_MD, SHADOW_SM, SHADOW_MD } from '../graph/theme'
 
 interface Props {
   nodes: Node[]
@@ -60,7 +59,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
       }
       const { nodes: nn, edges: ee } = fromProjectJSON(parsed)
       onImport(nn, ee, parsed.settings?.startDate)
-    } catch (err) {
+    } catch {
       setImportErrors(['Ungültiges JSON'])
       setImportOpen(true)
     }
@@ -79,7 +78,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
       `
       document.head.appendChild(style)
       const dataUrl = await toPng(el, {
-        backgroundColor: COLOR_BG,
+        backgroundColor: '#0a0f1e',
         filter: (node) => {
           if (!(node instanceof Element)) return true
           const cls = node.classList
@@ -100,17 +99,27 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
     }
   }
 
+  const separatorStyle: React.CSSProperties = {
+    width: 1,
+    height: 20,
+    background: 'rgba(255,255,255,0.08)',
+    margin: '0 2px',
+    flexShrink: 0,
+  }
+
   return (
     <div
       style={{
         display: 'flex',
-        gap: 4,
+        gap: 2,
         alignItems: 'center',
-        background: COLOR_SURFACE,
-        border: `1px solid ${COLOR_BORDER}`,
-        borderRadius: RADIUS_MD,
-        padding: '4px 8px',
-        boxShadow: SHADOW_SM,
+        background: 'rgba(10,15,40,0.75)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        border: '1px solid rgba(255,255,255,0.10)',
+        borderRadius: 100,
+        padding: '6px 12px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
     >
       {/* Group 1: Export + Import */}
@@ -121,10 +130,9 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
         Import
       </Button>
 
-      {/* Visual separator */}
-      <div style={{ width: 1, height: 20, background: COLOR_BORDER, margin: '0 4px' }} />
+      <div style={separatorStyle} />
 
-      {/* Group 2: Snapshots + PNG */}
+      {/* Group 2: Snapshots */}
       <div style={{ position: 'relative' }}>
         <Button
           variant="ghost"
@@ -144,20 +152,22 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
           <div
             style={{
               position: 'absolute',
-              top: '110%',
+              top: 'calc(100% + 8px)',
               right: 0,
-              background: COLOR_BG,
-              border: `1px solid ${COLOR_BORDER}`,
-              borderRadius: RADIUS_MD,
+              background: 'rgba(10,15,40,0.92)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 12,
               width: 280,
-              padding: 8,
-              boxShadow: SHADOW_MD,
+              padding: 10,
+              boxShadow: '0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
               zIndex: 10002,
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <div style={{ fontWeight: 600 }}>Snapshots</div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: '#f8fafc' }}>Snapshots</div>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <input
                   type="text"
                   value={snapshotName}
@@ -172,8 +182,16 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                     }
                   }}
                   placeholder="Name (optional)"
-                  className="text-xs px-2 py-1 border border-neutral-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-neutral-400"
-                  style={{ width: '100%', maxWidth: 140 }}
+                  style={{
+                    width: 130,
+                    padding: '4px 8px',
+                    fontSize: 12,
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 6,
+                    color: '#f8fafc',
+                    outline: 'none',
+                  }}
                 />
                 <button
                   onClick={() => {
@@ -186,22 +204,40 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                       console.error(e)
                     }
                   }}
-                  style={{ fontSize: 12 }}
+                  style={{
+                    fontSize: 12,
+                    padding: '4px 8px',
+                    background: 'rgba(96,165,250,0.15)',
+                    border: '1px solid rgba(96,165,250,0.3)',
+                    borderRadius: 6,
+                    color: '#60a5fa',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
                   + Neu
                 </button>
               </div>
             </div>
             {snaps.length === 0 ? (
-              <div style={{ fontSize: 12, color: COLOR_TEXT_MUTED }}>Keine Snapshots</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', padding: '4px 0' }}>Keine Snapshots</div>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflowY: 'auto' }}>
                 {snaps.map((s) => (
-                  <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
-                    <span style={{ fontSize: 12 }}>
+                  <li
+                    key={s.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '5px 4px',
+                      borderRadius: 6,
+                    }}
+                  >
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}>
                       {s.name ? s.name : new Date(s.ts).toLocaleString()}
                     </span>
-                    <span>
+                    <span style={{ display: 'flex', gap: 4 }}>
                       <button
                         onClick={() => {
                           const pj = loadSnapshot(s.id)
@@ -211,7 +247,15 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                             setOpen(false)
                           }
                         }}
-                        style={{ marginRight: 6, fontSize: 12, padding: '2px 6px' }}
+                        style={{
+                          fontSize: 11,
+                          padding: '2px 7px',
+                          background: 'rgba(96,165,250,0.12)',
+                          border: '1px solid rgba(96,165,250,0.25)',
+                          borderRadius: 4,
+                          color: '#60a5fa',
+                          cursor: 'pointer',
+                        }}
                       >
                         Laden
                       </button>
@@ -220,7 +264,15 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                           deleteSnapshot(s.id)
                           setSnaps(listSnapshots())
                         }}
-                        style={{ fontSize: 12, padding: '2px 6px' }}
+                        style={{
+                          fontSize: 11,
+                          padding: '2px 7px',
+                          background: 'rgba(248,113,113,0.10)',
+                          border: '1px solid rgba(248,113,113,0.2)',
+                          borderRadius: 4,
+                          color: '#f87171',
+                          cursor: 'pointer',
+                        }}
                       >
                         Löschen
                       </button>
@@ -232,6 +284,8 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
           </div>
         )}
       </div>
+
+      <div style={separatorStyle} />
 
       <Button
         variant="ghost"
@@ -252,17 +306,19 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
       />
 
       <Modal open={importOpen} onClose={() => setImportOpen(false)} title="JSON importieren">
-        <div className="space-y-3 text-sm">
-          <div className="font-medium">Die Datei konnte nicht importiert werden:</div>
-          <ul className="list-disc pl-5">
+        <div style={{ fontSize: 13 }}>
+          <div style={{ fontWeight: 600, marginBottom: 10, color: '#f8fafc' }}>
+            Die Datei konnte nicht importiert werden:
+          </div>
+          <ul style={{ paddingLeft: 18, marginBottom: 14, color: 'rgba(255,255,255,0.7)' }}>
             {importErrors.map((e, i) => (
               <li key={i}>{e}</li>
             ))}
           </ul>
-          <div className="flex justify-end">
-            <button onClick={() => setImportOpen(false)} className="px-3 py-1.5 rounded border text-sm bg-white">
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="outline" onClick={() => setImportOpen(false)}>
               Schließen
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

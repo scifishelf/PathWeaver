@@ -9,18 +9,105 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'outline', icon, className = '', children, ...props }, ref) => {
-    const base =
-      'inline-flex items-center gap-2 px-3 py-1.5 rounded text-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed'
-    const styles: Record<ButtonVariant, string> = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500',
-      outline: 'border hover:bg-neutral-50 focus:ring-2 focus:ring-blue-500',
-      ghost:
-        'hover:bg-neutral-100 active:bg-neutral-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+  ({ variant = 'outline', icon, className = '', children, style, ...props }, ref) => {
+    const base: React.CSSProperties = {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      padding: '6px 12px',
+      borderRadius: 8,
+      fontSize: 13,
+      fontWeight: 500,
+      cursor: 'pointer',
+      border: 'none',
+      outline: 'none',
+      transition: 'all 200ms ease',
+      whiteSpace: 'nowrap',
     }
+
+    const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
+      primary: {
+        background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+        color: '#ffffff',
+        boxShadow: '0 2px 8px rgba(99,102,241,0.3)',
+      },
+      outline: {
+        background: 'rgba(255,255,255,0.06)',
+        color: '#f8fafc',
+        border: '1px solid rgba(255,255,255,0.15)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      },
+      ghost: {
+        background: 'transparent',
+        color: 'rgba(255,255,255,0.70)',
+      },
+    }
+
+    const disabledStyles: React.CSSProperties = {
+      opacity: 0.45,
+      cursor: 'not-allowed',
+    }
+
+    const combinedStyle: React.CSSProperties = {
+      ...base,
+      ...variantStyles[variant],
+      ...(props.disabled ? disabledStyles : {}),
+      ...style,
+    }
+
     return (
-      <button ref={ref} className={`${base} ${styles[variant]} ${className}`} {...props}>
-        {icon && <span className="flex-shrink-0">{icon}</span>}
+      <button
+        ref={ref}
+        style={combinedStyle}
+        className={className}
+        onMouseEnter={(e) => {
+          if (props.disabled) return
+          const el = e.currentTarget
+          if (variant === 'primary') {
+            el.style.boxShadow = '0 0 20px rgba(96,165,250,0.4), 0 2px 8px rgba(99,102,241,0.3)'
+            el.style.transform = 'scale(1.02)'
+          } else if (variant === 'outline') {
+            el.style.background = 'rgba(255,255,255,0.10)'
+            el.style.borderColor = 'rgba(255,255,255,0.22)'
+          } else {
+            el.style.background = 'rgba(255,255,255,0.08)'
+            el.style.color = '#f8fafc'
+          }
+          props.onMouseEnter?.(e)
+        }}
+        onMouseLeave={(e) => {
+          if (props.disabled) return
+          const el = e.currentTarget
+          if (variant === 'primary') {
+            el.style.boxShadow = '0 2px 8px rgba(99,102,241,0.3)'
+            el.style.transform = ''
+          } else if (variant === 'outline') {
+            el.style.background = 'rgba(255,255,255,0.06)'
+            el.style.borderColor = 'rgba(255,255,255,0.15)'
+          } else {
+            el.style.background = 'transparent'
+            el.style.color = 'rgba(255,255,255,0.70)'
+          }
+          props.onMouseLeave?.(e)
+        }}
+        onMouseDown={(e) => {
+          if (props.disabled) return
+          if (variant === 'ghost') {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+          }
+          props.onMouseDown?.(e)
+        }}
+        onMouseUp={(e) => {
+          if (props.disabled) return
+          if (variant === 'ghost') {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+          }
+          props.onMouseUp?.(e)
+        }}
+        {...props}
+      >
+        {icon && <span style={{ display: 'flex', flexShrink: 0 }}>{icon}</span>}
         {children}
       </button>
     )

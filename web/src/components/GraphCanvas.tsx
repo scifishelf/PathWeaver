@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from 'react'
-import ReactFlow, { Background, Controls, MiniMap, Panel, useEdgesState, useNodesState, addEdge, useReactFlow, ReactFlowProvider } from 'reactflow'
+import ReactFlow, { Background, BackgroundVariant, Controls, MiniMap, Panel, useEdgesState, useNodesState, addEdge, useReactFlow, ReactFlowProvider } from 'reactflow'
 import type { NodeTypes } from 'reactflow'
 import { StartNode } from '../graph/StartNode'
 import { EndNode } from '../graph/EndNode'
@@ -11,7 +11,7 @@ import { ContextMenu } from './ContextMenu'
 import { validateGraph } from '../graph/validate'
 import { computeCPM } from '../cpm/compute'
 import { AppToolbar } from './AppToolbar'
-import { COLOR_ACCENT, COLOR_BG, RADIUS_MD, SHADOW_SM, COLOR_CANVAS_BG, COLOR_ERROR, COLOR_ERROR_BG, COLOR_ERROR_BORDER, COLOR_WARNING_BG, COLOR_WARNING_BORDER, COLOR_WARNING_TEXT, COLOR_FAB, COLOR_FAB_BORDER } from '../graph/theme'
+import { COLOR_CANVAS_BG, COLOR_ERROR, COLOR_ERROR_BG, COLOR_ERROR_BORDER, COLOR_WARNING_BG, COLOR_WARNING_BORDER, COLOR_WARNING_TEXT, RADIUS_MD, SHADOW_SM } from '../graph/theme'
 import { toProjectJSON, fromProjectJSON } from '../persistence/serialize'
 import { saveCurrent, loadCurrent, type SaveResult } from '../persistence/autosave'
 
@@ -243,18 +243,22 @@ function GraphCanvasInner() {
       const onCp = cpPairs.has(e.source + '→' + e.target)
       const style: any = e.style ? { ...e.style } : {}
       if (invalid) {
-        style.stroke = COLOR_ERROR
+        style.stroke = '#f87171'
         style.strokeWidth = 2
       } else if (onCp) {
-        style.stroke = COLOR_ACCENT
-        style.strokeWidth = 3
+        style.stroke = '#22d3ee'
+        style.strokeWidth = 2.5
+        style.filter = 'drop-shadow(0 0 4px #22d3ee)'
+      } else {
+        style.stroke = 'rgba(255,255,255,0.25)'
+        style.strokeWidth = 1.5
       }
       return { ...e, style }
     })
   }, [edges, errors, nodesWithTooManyOut, startId, cp])
 
   return (
-    <div className="w-full h-full relative" style={{ width: '100%', height: '100%', background: COLOR_CANVAS_BG }}>
+    <div className="w-full h-full relative" style={{ width: '100%', height: '100%', background: COLOR_CANVAS_BG, backgroundImage: 'linear-gradient(135deg, #0a0f1e 0%, #0d1b3e 50%, #1a0533 100%)' }}>
       <ReactFlow
         nodes={styledNodes}
         edges={styledEdges}
@@ -272,9 +276,31 @@ function GraphCanvasInner() {
         snapGrid={[8, 8]}
         nodeTypes={nodeTypes}
       >
-        <Background />
-        <MiniMap />
-        <Controls />
+        <Background
+          color="rgba(255,255,255,0.08)"
+          gap={24}
+          size={1.5}
+          variant={BackgroundVariant.Dots}
+        />
+        <MiniMap
+          style={{
+            background: 'rgba(10,15,40,0.8)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 8,
+          }}
+          nodeColor={(node: { data?: { computed?: { critical?: boolean } } }) =>
+            node.data?.computed?.critical ? '#22d3ee' : 'rgba(96,165,250,0.5)'
+          }
+          maskColor="rgba(0,0,10,0.6)"
+        />
+        <Controls
+          style={{
+            background: 'rgba(10,15,40,0.75)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 8,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          }}
+        />
         <Panel position="top-right" style={{ right: 16, top: 16 }}>
           <AppToolbar
             nodes={nodes as any}
@@ -294,17 +320,32 @@ function GraphCanvasInner() {
             title="Neuen Task hinzufügen"
             onClick={() => addTaskNode()}
             style={{
-              height: 45,
-              width: 45,
+              height: 44,
+              width: 44,
               borderRadius: 9999,
-              background: COLOR_FAB,
-              color: COLOR_BG,
+              background: 'linear-gradient(135deg, #34d399, #059669)',
+              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 20px rgba(0,0,0,.25)',
-              border: `2px solid ${COLOR_FAB_BORDER}`,
+              boxShadow: '0 4px 20px rgba(52,211,153,0.45), 0 0 0 1px rgba(52,211,153,0.2)',
+              border: 'none',
               cursor: 'pointer',
+              transition: 'transform 150ms ease, box-shadow 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.08)'
+              e.currentTarget.style.boxShadow = '0 6px 28px rgba(52,211,153,0.6), 0 0 0 1px rgba(52,211,153,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = ''
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(52,211,153,0.45), 0 0 0 1px rgba(52,211,153,0.2)'
+            }}
+            onMouseDown={(e) => {
+              e.currentTarget.style.transform = 'scale(0.96)'
+            }}
+            onMouseUp={(e) => {
+              e.currentTarget.style.transform = 'scale(1.08)'
             }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -318,28 +359,35 @@ function GraphCanvasInner() {
         <div
           style={{
             position: 'fixed',
-            top: 16,
+            top: 72,
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 10000,
-            background: '#eff6ff',
-            color: '#1d4ed8',
-            border: `1px solid ${COLOR_ACCENT}`,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'rgba(34,211,238,0.10)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(34,211,238,0.30)',
             borderRadius: RADIUS_MD,
-            padding: '8px 16px',
+            padding: '7px 14px',
             fontSize: 12,
-            fontWeight: 400,
-            boxShadow: SHADOW_SM,
+            fontWeight: 600,
+            color: '#22d3ee',
+            boxShadow: `0 0 16px rgba(34,211,238,0.2), ${SHADOW_SM}`,
+            whiteSpace: 'nowrap',
           }}
         >
-          ◆ Kritischer Pfad: {cp.project.durationAT} Arbeitstage
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22d3ee', display: 'inline-block', boxShadow: '0 0 6px #22d3ee' }} />
+          Kritischer Pfad: {cp.project.durationAT} Arbeitstage
         </div>
       )}
       {errors.length > 0 && (
         <div
           style={{
             position: 'fixed',
-            top: 56,
+            top: 72,
             left: '50%',
             transform: 'translateX(-50%)',
             width: 'min(800px, 95vw)',
@@ -349,12 +397,15 @@ function GraphCanvasInner() {
         >
           <div style={{
             background: COLOR_ERROR_BG,
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             border: `1px solid ${COLOR_ERROR_BORDER}`,
             borderRadius: 8,
-            padding: 12
+            padding: 12,
+            color: '#f87171',
           }}>
             <div style={{ fontWeight: 600, marginBottom: 4 }}>Fehler im Graphen</div>
-            <ul style={{ paddingLeft: 18 }}>
+            <ul style={{ paddingLeft: 18, color: 'rgba(248,113,113,0.85)', fontSize: 13 }}>
               {errors.map((e, i) => (
                 <li key={i}>{e}</li>
               ))}
@@ -366,7 +417,7 @@ function GraphCanvasInner() {
         <div
           style={{
             position: 'fixed',
-            top: errors.length > 0 ? 120 : 56,
+            top: errors.length > 0 ? 140 : 72,
             left: '50%',
             transform: 'translateX(-50%)',
             width: 'min(800px, 95vw)',
@@ -375,6 +426,8 @@ function GraphCanvasInner() {
         >
           <div style={{
             background: COLOR_WARNING_BG,
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             border: `1px solid ${COLOR_WARNING_BORDER}`,
             borderRadius: 8,
             padding: 12,
