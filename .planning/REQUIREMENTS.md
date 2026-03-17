@@ -17,9 +17,9 @@
 ### UX & Daten
 
 - [x] **UX-01**: Multi-Successor-Knoten erhalten keinen roten Fehlerrahmen (`nodesWithTooManyOut` entfernt)
-- [ ] **UX-02**: HelpOverlay enthält keine veralteten "max. 1 ausgehende Kante"-Hinweise
-- [ ] **UX-03**: v1.0 Projektdateien (JSON) laden und berechnen korrekt ohne Migration
-- [ ] **UX-04**: `serialize.ts` dokumentiert die `${from}-${to}` Edge-ID-Annahme explizit
+- [x] **UX-02**: HelpOverlay enthält keine veralteten "max. 1 ausgehende Kante"-Hinweise
+- [x] **UX-03**: v1.0 Projektdateien (JSON) laden und berechnen korrekt ohne Migration
+- [x] **UX-04**: `serialize.ts` dokumentiert die `${from}-${to}` Edge-ID-Annahme explizit
 
 ## v3+ Requirements
 
@@ -52,9 +52,9 @@
 | ALGO-05 | Phase 3 | Complete |
 | ALGO-06 | Phase 3 | Complete |
 | UX-01 | Phase 3 | Complete |
-| UX-02 | Phase 4 | Pending |
-| UX-03 | Phase 4 | Pending |
-| UX-04 | Phase 4 | Pending |
+| UX-02 | Phase 4 | Complete |
+| UX-03 | Phase 4 | Complete |
+| UX-04 | Phase 4 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 10 total

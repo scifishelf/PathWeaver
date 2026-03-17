@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Multi-Predecessor CPM
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-17T14:32:29.525Z"
+stopped_at: Completed 04-01 (help text cleanup, edge ID comment, v1.0 compat test)
+last_updated: "2026-03-17T15:41:34.325Z"
 last_activity: 2026-03-17 — Completed 03-01 (CPM guard removal + criticalNodeIds)
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 25
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Der kritische Pfad muss korrekt berechnet und klar sichtbar sein — alles andere ist sekundär.
-**Current focus:** Phase 3 — Algorithm & Guard Removal
+**Current focus:** Phase 4 — UX Polish & Validation
 
 ## Current Position
 
-Phase: 3 of 4 (Algorithm & Guard Removal)
-Plan: 1 of 2 complete
-Status: In progress
-Last activity: 2026-03-17 — Completed 03-01 (CPM guard removal + criticalNodeIds)
+Phase: 4 of 4 (UX Polish & Validation)
+Plan: 1 of 1 complete
+Status: Phase complete
+Last activity: 2026-03-17 — Completed 04-01 (help text cleanup, edge ID comment, v1.0 compat test)
 
-Progress: [██░░░░░░░░] 25%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [██░░░░░░░░] 25%
 
 *Updated after each plan completion*
 | Phase 03 P02 | 2 | 1 tasks | 1 files |
+| Phase 04-ux-polish-validation P01 | ~5 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,7 @@ Recent decisions affecting current work:
 - [Phase 03]: BFS cycle guard: walk outgoers of proposed target; if source found, reject connection
 - [Phase 03]: Edge criticality uses criticalNodeIds: both source AND target must be in the set (correct for diamond/multi-path topologies)
 - [Phase 03]: nodesWithTooManyOut removed entirely — multi-successor task nodes are valid and must never show error state
+- [Phase 04-01]: Edge ID comment placed above reconstruction line to make single-handle assumption explicit before multi-handle work begins
 
 ### Pending Todos
 
@@ -79,6 +81,6 @@ None — research confidence is HIGH, all change sites identified with exact lin
 
 ## Session Continuity
 
-Last session: 2026-03-17T14:29:25.659Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-03-17T15:41:34.324Z
+Stopped at: Completed 04-01 (help text cleanup, edge ID comment, v1.0 compat test)
 Resume file: None

@@ -22,7 +22,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Milestone Goal:** Remove the artificial 1-outgoing-edge constraint and deliver a CPM engine that correctly handles fan-out, merge, and diamond topologies — with cycle safety and correct multi-path highlighting.
 
 - [x] **Phase 3: Algorithm & Guard Removal** - Remove all constraint guards atomically and fix critical path correctness for multi-predecessor graphs (completed 2026-03-17)
-- [ ] **Phase 4: UX Polish & Validation** - Clean up outdated help text and confirm backward compatibility with v1.0 project files
+- [x] **Phase 4: UX Polish & Validation** - Clean up outdated help text and confirm backward compatibility with v1.0 project files (completed 2026-03-17)
 
 ## Phase Details
 
@@ -50,7 +50,7 @@ Plans:
   1. HelpOverlay contains no references to a "max. 1 outgoing edge" limit
   2. A v1.0 JSON file opened in v2.0 loads without errors and displays correct CPM values
   3. The `serialize.ts` edge ID scheme is documented with an explicit comment noting the single-handle assumption
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 04-01-PLAN.md — Remove outdated help text, add edge ID comment, add v1.0 backward-compatibility test
@@ -62,4 +62,4 @@ Plans:
 | 1. Code Quality & Stability | v1.0 | 7/7 | Complete | 2026-03-16 |
 | 2. UI — Clean & Professional | v1.0 | 5/5 | Complete | 2026-03-16 |
 | 3. Algorithm & Guard Removal | 2/2 | Complete   | 2026-03-17 | - |
-| 4. UX Polish & Validation | v2.0 | 0/1 | Not started | - |
+| 4. UX Polish & Validation | 1/1 | Complete   | 2026-03-17 | - |
