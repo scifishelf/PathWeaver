@@ -24,7 +24,8 @@ describe('computeCPM', () => {
     }
 
     const res = computeCPM(plan)
-    expect(res.criticalPath).toEqual(['start', 'A', 'C', 'end'])
+    expect(res.criticalNodeIds).toBeInstanceOf(Set)
+    expect(res.criticalNodeIds).toEqual(new Set(['start', 'A', 'C', 'end']))
     expect(res.project.durationAT).toBe(7)
   })
   it('erkennt Zyklen (allgemein) und Start/End-Regeln', () => {
@@ -68,8 +69,9 @@ describe('computeCPM — edge cases (TEST-04)', () => {
     }
     const res = computeCPM(plan)
     expect(res.project.durationAT).toBe(0)
-    expect(res.criticalPath).toContain('start')
-    expect(res.criticalPath).toContain('end')
+    expect(res.criticalNodeIds).toBeInstanceOf(Set)
+    expect(res.criticalNodeIds.has('start')).toBe(true)
+    expect(res.criticalNodeIds.has('end')).toBe(true)
   })
 
   it('disconnected subgraph throws ComputeError with code ORPHAN', () => {
@@ -111,5 +113,99 @@ describe('computeCPM — edge cases (TEST-04)', () => {
     expect(thrown).toBeInstanceOf(ComputeError)
     expect(typeof thrown?.code).toBe('string')
     expect(thrown?.code).toBeTruthy()
+  })
+})
+
+describe('computeCPM — multi-predecessor (v2.0)', () => {
+  it('fan-out: multi-successor task does not throw MULTIPLE_OUTGOING', () => {
+    const plan: ProjectJSON = {
+      settings: { version: '1.0' as const },
+      nodes: [
+        { id: 'start', type: 'start' },
+        { id: 'A', type: 'task', duration: 3 },
+        { id: 'B', type: 'task', duration: 2 },
+        { id: 'C', type: 'task', duration: 4 },
+        { id: 'end', type: 'end' },
+      ],
+      edges: [
+        { from: 'start', to: 'A' },
+        { from: 'A', to: 'B' },
+        { from: 'A', to: 'C' },
+        { from: 'B', to: 'end' },
+        { from: 'C', to: 'end' },
+      ],
+    }
+    const res = computeCPM(plan)
+    expect(res.project.durationAT).toBe(7)  // start(0) + A(3) + C(4) = 7
+  })
+
+  it('diamond: both equal branches highlighted as critical', () => {
+    const plan: ProjectJSON = {
+      settings: { version: '1.0' as const },
+      nodes: [
+        { id: 'start', type: 'start' },
+        { id: 'A', type: 'task', duration: 3 },
+        { id: 'B', type: 'task', duration: 3 },
+        { id: 'end', type: 'end' },
+      ],
+      edges: [
+        { from: 'start', to: 'A' },
+        { from: 'start', to: 'B' },
+        { from: 'A', to: 'end' },
+        { from: 'B', to: 'end' },
+      ],
+    }
+    const res = computeCPM(plan)
+    expect(res.criticalNodeIds).toBeInstanceOf(Set)
+    expect(res.criticalNodeIds.has('start')).toBe(true)
+    expect(res.criticalNodeIds.has('A')).toBe(true)
+    expect(res.criticalNodeIds.has('B')).toBe(true)
+    expect(res.criticalNodeIds.has('end')).toBe(true)
+  })
+
+  it('diamond: only longer branch is critical when durations differ', () => {
+    const plan: ProjectJSON = {
+      settings: { version: '1.0' as const },
+      nodes: [
+        { id: 'start', type: 'start' },
+        { id: 'A', type: 'task', duration: 5 },
+        { id: 'B', type: 'task', duration: 3 },
+        { id: 'end', type: 'end' },
+      ],
+      edges: [
+        { from: 'start', to: 'A' },
+        { from: 'start', to: 'B' },
+        { from: 'A', to: 'end' },
+        { from: 'B', to: 'end' },
+      ],
+    }
+    const res = computeCPM(plan)
+    expect(res.criticalNodeIds.has('A')).toBe(true)
+    expect(res.criticalNodeIds.has('B')).toBe(false)
+    expect(res.project.durationAT).toBe(5)
+  })
+
+  it('merge node: FAZ equals max of all incoming FEZ', () => {
+    const plan: ProjectJSON = {
+      settings: { version: '1.0' as const },
+      nodes: [
+        { id: 'start', type: 'start' },
+        { id: 'A', type: 'task', duration: 5 },
+        { id: 'B', type: 'task', duration: 3 },
+        { id: 'M', type: 'task', duration: 2 },
+        { id: 'end', type: 'end' },
+      ],
+      edges: [
+        { from: 'start', to: 'A' },
+        { from: 'start', to: 'B' },
+        { from: 'A', to: 'M' },
+        { from: 'B', to: 'M' },
+        { from: 'M', to: 'end' },
+      ],
+    }
+    const res = computeCPM(plan)
+    expect(res.nodes['M'].ES).toBe(5)  // max(5, 3) = 5
+    expect(res.nodes['M'].EF).toBe(7)  // 5 + 2
+    expect(res.project.durationAT).toBe(7)
   })
 })
