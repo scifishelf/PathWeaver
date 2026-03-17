@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { HelpOverlay } from './components/HelpOverlay'
-import { HelpCircle } from 'lucide-react'
+import { WhyCPMOverlay } from './components/WhyCPMOverlay'
+import { HelpCircle, BookOpen } from 'lucide-react'
 import { GraphCanvas } from './components/GraphCanvas'
 
 export default function App() {
   const [helpOpen, setHelpOpen] = useState(false)
+  const [whyCpmOpen, setWhyCpmOpen] = useState(false)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', minWidth: 1200 }}>
@@ -56,6 +58,36 @@ export default function App() {
           {/* Right side */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
+              aria-label="Why CPM?"
+              title="Why CPM?"
+              onClick={() => setWhyCpmOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'transparent',
+                border: '1px solid rgba(255,255,255,0.10)',
+                color: 'rgba(255,255,255,0.55)',
+                cursor: 'pointer',
+                transition: 'all 200ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                e.currentTarget.style.color = '#f8fafc'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.20)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.color = 'rgba(255,255,255,0.55)'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'
+              }}
+            >
+              <BookOpen size={16} />
+            </button>
+            <button
               aria-label="Open Help"
               title="Quick Reference"
               onClick={() => setHelpOpen(true)}
@@ -95,6 +127,7 @@ export default function App() {
       </main>
 
       <HelpOverlay open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <WhyCPMOverlay open={whyCpmOpen} onClose={() => setWhyCpmOpen(false)} />
     </div>
   )
 }
