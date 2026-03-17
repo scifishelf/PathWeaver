@@ -1,0 +1,123 @@
+{
+  "settings": {
+    "version": "1.0",
+    "startDate": "2025-10-07"
+  },
+  "nodes": [
+    {
+      "id": "N0",
+      "type": "start",
+      "x": -40,
+      "y": 130
+    },
+    {
+      "id": "N7",
+      "type": "task",
+      "x": 200,
+      "y": 60,
+      "title": "Spieß auf Temperatur bringen",
+      "duration": 0.2
+    },
+    {
+      "id": "N1",
+      "type": "task",
+      "x": 200,
+      "y": 200,
+      "title": "Laden öffnen & HACCP-Hygienecheck",
+      "duration": 0.125
+    },
+    {
+      "id": "N5",
+      "type": "task",
+      "x": 450,
+      "y": 200,
+      "title": "Soßen ansetzen & bereitstellen",
+      "duration": 0.15
+    },
+    {
+      "id": "N8",
+      "type": "task",
+      "x": 680,
+      "y": 130,
+      "title": "Mise en Place abschließen",
+      "duration": 0
+    },
+    {
+      "id": "N9",
+      "type": "task",
+      "x": 900,
+      "y": 130,
+      "title": "Verkaufsstart",
+      "duration": 0
+    },
+    {
+      "id": "N10",
+      "type": "task",
+      "x": 1110,
+      "y": 130,
+      "title": "Bestellung aufnehmen",
+      "duration": 0.0125
+    },
+    {
+      "id": "N11",
+      "type": "task",
+      "x": 1340,
+      "y": 130,
+      "title": "Brot erwärmen/öffnen",
+      "duration": 0.0125
+    },
+    {
+      "id": "N12",
+      "type": "task",
+      "x": 1570,
+      "y": 130,
+      "title": "Fleisch frisch schneiden",
+      "duration": 0.025
+    },
+    {
+      "id": "N13",
+      "type": "task",
+      "x": 1800,
+      "y": 130,
+      "title": "Dönertasche belegen (Gemüse, Soßen)",
+      "duration": 0.015
+    },
+    {
+      "id": "N14",
+      "type": "task",
+      "x": 2030,
+      "y": 130,
+      "title": "Verpacken & Ausgabe an Kunde",
+      "duration": 0.01
+    },
+    {
+      "id": "N15",
+      "type": "task",
+      "x": 2260,
+      "y": 130,
+      "title": "Zahlung kassieren (Bargeld/Karte)",
+      "duration": 0.0125
+    },
+    {
+      "id": "N16",
+      "type": "end",
+      "x": 2490,
+      "y": 130
+    }
+  ],
+  "edges": [
+    { "from": "N0",  "to": "N7"  },
+    { "from": "N0",  "to": "N1"  },
+    { "from": "N1",  "to": "N5"  },
+    { "from": "N5",  "to": "N8"  },
+    { "from": "N7",  "to": "N8"  },
+    { "from": "N8",  "to": "N9"  },
+    { "from": "N9",  "to": "N10" },
+    { "from": "N10", "to": "N11" },
+    { "from": "N11", "to": "N12" },
+    { "from": "N12", "to": "N13" },
+    { "from": "N13", "to": "N14" },
+    { "from": "N14", "to": "N15" },
+    { "from": "N15", "to": "N16" }
+  ]
+}

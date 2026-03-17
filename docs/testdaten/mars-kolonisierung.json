@@ -1,0 +1,146 @@
+{
+  "settings": {
+    "version": "1.0",
+    "startDate": "2030-01-01"
+  },
+  "nodes": [
+    { "id": "S",   "type": "start", "x": 0,    "y": 910 },
+
+    { "id": "N01", "type": "task", "x": 230,  "y": 60,   "title": "Kernthermisches Triebwerk: Konzept & Simulation",    "duration": 130 },
+    { "id": "N02", "type": "task", "x": 460,  "y": 60,   "title": "NTR Prototyp-Bau & Brennkammertests",                "duration": 195 },
+    { "id": "N03", "type": "task", "x": 690,  "y": 60,   "title": "Triebwerk-Zertifizierung & Flugfreigabe",            "duration": 130 },
+
+    { "id": "N04", "type": "task", "x": 230,  "y": 230,  "title": "Geschlossenes Lebenserhaltungssystem entwickeln",    "duration": 260 },
+    { "id": "N05", "type": "task", "x": 460,  "y": 230,  "title": "Medizinische Notfallsysteme & Telemedizin",          "duration": 130 },
+
+    { "id": "N06", "type": "task", "x": 230,  "y": 400,  "title": "Strahlungsmodellierung & Schutzkonzept",             "duration": 195 },
+    { "id": "N07", "type": "task", "x": 460,  "y": 400,  "title": "Magnetischer Schutzschild Prototyp",                 "duration": 195 },
+
+    { "id": "N08", "type": "task", "x": 230,  "y": 570,  "title": "Laser-Kommunikationssystem entwickeln",              "duration": 130 },
+    { "id": "N09", "type": "task", "x": 460,  "y": 570,  "title": "Bodenstation-Netzwerk Deep-Space erweitern",         "duration": 195 },
+
+    { "id": "M1",  "type": "task", "x": 920,  "y": 315,  "title": "Kernsysteme einsatzbereit",                          "duration": 0 },
+
+    { "id": "N10", "type": "task", "x": 230,  "y": 740,  "title": "Schwerlasttraeger entwickeln & bauen",               "duration": 260 },
+    { "id": "N11", "type": "task", "x": 460,  "y": 740,  "title": "Triebwerksintegration & Zuendtests",                 "duration": 195 },
+    { "id": "N12", "type": "task", "x": 690,  "y": 740,  "title": "Erststart & Qualifikationsflug zum Mond",            "duration": 65  },
+
+    { "id": "N13", "type": "task", "x": 230,  "y": 910,  "title": "Mondlander Design & Prototyp",                       "duration": 195 },
+    { "id": "N14", "type": "task", "x": 460,  "y": 910,  "title": "Mondlander Bau & Testkampagne",                      "duration": 260 },
+    { "id": "N15", "type": "task", "x": 690,  "y": 910,  "title": "Betankungsstation am Mondpol aufbauen",              "duration": 130 },
+
+    { "id": "N16", "type": "task", "x": 230,  "y": 1080, "title": "Roboter-Voraberkundung Mondpole",                    "duration": 65  },
+    { "id": "N17", "type": "task", "x": 460,  "y": 1080, "title": "Mondkolonie-Module produzieren & transportieren",    "duration": 260 },
+    { "id": "N18", "type": "task", "x": 690,  "y": 1080, "title": "Mondkolonie in Betrieb nehmen",                      "duration": 195 },
+
+    { "id": "M2",  "type": "task", "x": 1150, "y": 730,  "title": "Mondinfrastruktur einsatzbereit",                    "duration": 0 },
+
+    { "id": "N19", "type": "task", "x": 230,  "y": 1250, "title": "Marsraumschiff: Architektur & Systemdesign",         "duration": 130 },
+    { "id": "N20", "type": "task", "x": 460,  "y": 1250, "title": "Modul-Produktion (Antrieb, Habitat, Versorgung)",    "duration": 260 },
+    { "id": "N21", "type": "task", "x": 690,  "y": 1250, "title": "Montage des Marsraumschiffs im Erdorbit",            "duration": 195 },
+    { "id": "N22", "type": "task", "x": 920,  "y": 1250, "title": "Systemtests & Kalibrierung im Orbit",                "duration": 130 },
+
+    { "id": "N23", "type": "task", "x": 230,  "y": 1420, "title": "ISRU-Anlage entwickeln & qualifizieren",             "duration": 195 },
+    { "id": "N24", "type": "task", "x": 460,  "y": 1420, "title": "Autonome Bau-Roboter fuer Mars testen",              "duration": 130 },
+    { "id": "N25", "type": "task", "x": 690,  "y": 1420, "title": "Mars-Habitat Prototyp im Vakuum testen",             "duration": 260 },
+    { "id": "N26", "type": "task", "x": 920,  "y": 1420, "title": "Versorgungslogistik & Lagersysteme planen",          "duration": 65  },
+
+    { "id": "N27", "type": "task", "x": 230,  "y": 1590, "title": "Astronauten-Kohorte fuer Marsflug auswaehlen",       "duration": 65  },
+    { "id": "N28", "type": "task", "x": 460,  "y": 1590, "title": "Mars-Missionstraining (Geologie, ISRU, Notfall)",    "duration": 260 },
+    { "id": "N29", "type": "task", "x": 690,  "y": 1590, "title": "Vollsimulation einer Marsmission",                   "duration": 130 },
+
+    { "id": "M3",  "type": "task", "x": 1380, "y": 1420, "title": "Marsflotte startklar",                               "duration": 0 },
+
+    { "id": "N30", "type": "task", "x": 1610, "y": 910,  "title": "Crew-Einschiffung & finaler Systemcheck",            "duration": 10  },
+    { "id": "N31", "type": "task", "x": 1840, "y": 910,  "title": "Start vom Mond zur Mars-Transferbahn",               "duration": 5   },
+    { "id": "N32", "type": "task", "x": 2070, "y": 910,  "title": "Interplanetarer Transferflug Erde-Mars",             "duration": 210 },
+    { "id": "N33", "type": "task", "x": 2300, "y": 910,  "title": "Mars-Orbit-Einschuss & Bremsmanoever",               "duration": 3   },
+    { "id": "N34", "type": "task", "x": 2530, "y": 910,  "title": "Abstieg & Landung auf dem Mars",                     "duration": 1   },
+    { "id": "N35", "type": "task", "x": 2760, "y": 910,  "title": "Erstinspektion & Notlager einrichten",               "duration": 5   },
+    { "id": "N36", "type": "task", "x": 2990, "y": 910,  "title": "ISRU-Anlage aktivieren (Wasser, O2, Treibstoff)",    "duration": 30  },
+    { "id": "N37", "type": "task", "x": 3220, "y": 910,  "title": "Permanente Unterkunft aufbauen",                     "duration": 60  },
+    { "id": "N38", "type": "task", "x": 3450, "y": 910,  "title": "Energieversorgung (Solar + Kernreaktor)",            "duration": 30  },
+    { "id": "N39", "type": "task", "x": 3680, "y": 910,  "title": "Kommunikationsnetz auf Mars-Oberflaeche",            "duration": 20  },
+    { "id": "N40", "type": "task", "x": 3910, "y": 910,  "title": "Erste wissenschaftliche Aussenmissionen",            "duration": 30  },
+    { "id": "N41", "type": "task", "x": 4140, "y": 910,  "title": "Gewaechshaus & Nahrungsproduktion starten",          "duration": 45  },
+    { "id": "N42", "type": "task", "x": 4370, "y": 910,  "title": "Medizinstation & Notfallinfrastruktur",              "duration": 15  },
+    { "id": "N43", "type": "task", "x": 4600, "y": 910,  "title": "Landebahn fuer Versorgungsfluege anlegen",           "duration": 30  },
+    { "id": "N44", "type": "task", "x": 4830, "y": 910,  "title": "Erster Versorgungsflug Erde nach Mars",              "duration": 210 },
+    { "id": "N45", "type": "task", "x": 5060, "y": 910,  "title": "Kolonie fuer erweiterte Besatzung freigeben",        "duration": 10  },
+
+    { "id": "E",   "type": "end",  "x": 5290, "y": 910 }
+  ],
+  "edges": [
+    { "from": "S",   "to": "N01" },
+    { "from": "S",   "to": "N04" },
+    { "from": "S",   "to": "N06" },
+    { "from": "S",   "to": "N08" },
+    { "from": "S",   "to": "N10" },
+    { "from": "S",   "to": "N13" },
+    { "from": "S",   "to": "N16" },
+    { "from": "S",   "to": "N19" },
+    { "from": "S",   "to": "N23" },
+    { "from": "S",   "to": "N27" },
+
+    { "from": "N01", "to": "N02" },
+    { "from": "N02", "to": "N03" },
+    { "from": "N03", "to": "M1"  },
+
+    { "from": "N04", "to": "N05" },
+    { "from": "N05", "to": "M1"  },
+
+    { "from": "N06", "to": "N07" },
+    { "from": "N07", "to": "M1"  },
+
+    { "from": "N08", "to": "N09" },
+    { "from": "N09", "to": "M1"  },
+
+    { "from": "M1",  "to": "M2"  },
+
+    { "from": "N10", "to": "N11" },
+    { "from": "N11", "to": "N12" },
+    { "from": "N12", "to": "M2"  },
+
+    { "from": "N13", "to": "N14" },
+    { "from": "N14", "to": "N15" },
+    { "from": "N15", "to": "M2"  },
+
+    { "from": "N16", "to": "N17" },
+    { "from": "N17", "to": "N18" },
+    { "from": "N18", "to": "M2"  },
+
+    { "from": "M2",  "to": "M3"  },
+
+    { "from": "N19", "to": "N20" },
+    { "from": "N20", "to": "N21" },
+    { "from": "N21", "to": "N22" },
+    { "from": "N22", "to": "M3"  },
+
+    { "from": "N23", "to": "N24" },
+    { "from": "N24", "to": "N25" },
+    { "from": "N25", "to": "N26" },
+    { "from": "N26", "to": "M3"  },
+
+    { "from": "N27", "to": "N28" },
+    { "from": "N28", "to": "N29" },
+    { "from": "N29", "to": "M3"  },
+
+    { "from": "M3",  "to": "N30" },
+    { "from": "N30", "to": "N31" },
+    { "from": "N31", "to": "N32" },
+    { "from": "N32", "to": "N33" },
+    { "from": "N33", "to": "N34" },
+    { "from": "N34", "to": "N35" },
+    { "from": "N35", "to": "N36" },
+    { "from": "N36", "to": "N37" },
+    { "from": "N37", "to": "N38" },
+    { "from": "N38", "to": "N39" },
+    { "from": "N39", "to": "N40" },
+    { "from": "N40", "to": "N41" },
+    { "from": "N41", "to": "N42" },
+    { "from": "N42", "to": "N43" },
+    { "from": "N43", "to": "N44" },
+    { "from": "N44", "to": "N45" },
+    { "from": "N45", "to": "E"   }
+  ]
+}
