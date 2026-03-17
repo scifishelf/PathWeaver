@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from 'react'
-import ReactFlow, { Background, BackgroundVariant, Controls, MiniMap, Panel, useEdgesState, useNodesState, addEdge, useReactFlow, ReactFlowProvider } from 'reactflow'
+import ReactFlow, { Background, BackgroundVariant, Controls, MiniMap, Panel, useEdgesState, useNodesState, addEdge, useReactFlow, ReactFlowProvider, getOutgoers } from 'reactflow'
 import type { NodeTypes } from 'reactflow'
 import { StartNode } from '../graph/StartNode'
 import { EndNode } from '../graph/EndNode'
@@ -31,7 +31,7 @@ function isValidISODate(s: string | undefined): s is string {
 const nodeTypes: NodeTypes = { start: StartNode, end: EndNode, task: TaskNode }
 
 function GraphCanvasInner() {
-  const { getViewport } = useReactFlow()
+  const { getViewport, getEdges, getNodes } = useReactFlow()
   const initialNodes = useMemo(
     () => [
       { id: 'start', position: { x: 120, y: 300 }, data: { label: 'Start' }, type: 'start', deletable: false },
@@ -46,22 +46,43 @@ function GraphCanvasInner() {
   const [quotaError, setQuotaError] = useState<string | null>(null)
 
   const onConnect = useCallback((connection: Connection) => setEdges((eds) => addEdge({ ...connection }, eds)), [])
-  // Guards: Start hat keine Eingänge, Ende keine Ausgänge, Task max. 1 Ausgang
+  // Guards: Start hat keine Eingänge, Ende keine Ausgänge, kein Zyklus, keine Duplikat-Kante
   const isValidConnection = useCallback(
     (conn: Connection) => {
-      const from = nodes.find((n) => n.id === conn.source)
-      const to = nodes.find((n) => n.id === conn.target)
+      const liveEdges = getEdges()
+      const liveNodes = getNodes()
+
+      const from = liveNodes.find((n) => n.id === conn.source)
+      const to = liveNodes.find((n) => n.id === conn.target)
       if (!from || !to) return false
       if (to.id === 'start') return false
       if (from.id === 'end') return false
-      // Task-Knoten (default) dürfen max. 1 Ausgang haben
-      if (from.type === 'task') {
-        const outCount = edges.filter((e) => e.source === from.id).length
-        if (outCount >= 1) return false
+
+      // Self-loop guard
+      if (conn.source === conn.target) return false
+
+      // ALGO-05: Duplicate edge guard
+      if (liveEdges.some((e) => e.source === conn.source && e.target === conn.target)) return false
+
+      // ALGO-04: BFS cycle detection — would adding source->target create a cycle?
+      // A cycle exists if target can already reach source via existing edges
+      const visited = new Set<string>()
+      const queue = [conn.target!]
+      while (queue.length) {
+        const cur = queue.shift()!
+        if (cur === conn.source) return false
+        if (visited.has(cur)) continue
+        visited.add(cur)
+        const curNode = liveNodes.find((n) => n.id === cur)
+        if (curNode) {
+          for (const outgoer of getOutgoers(curNode, liveNodes, liveEdges)) {
+            queue.push(outgoer.id)
+          }
+        }
       }
       return true
     },
-    [nodes, edges]
+    [getEdges, getNodes]
   )
 
   // Inline‑Edit Handler
@@ -163,20 +184,6 @@ function GraphCanvasInner() {
 
   // Highlight-Sets aus aktuellem Graph ableiten
   const startId = useMemo(() => nodes.find((n) => n.type === 'start')?.id, [nodes])
-  const outgoingCount = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const n of nodes) map.set(n.id, 0)
-    for (const e of edges) map.set(e.source!, (map.get(e.source!) || 0) + 1)
-    return map
-  }, [nodes, edges])
-
-  const nodesWithTooManyOut = useMemo(() => {
-    const s = new Set<string>()
-    for (const n of nodes) {
-      if (n.type === 'task' && (outgoingCount.get(n.id) || 0) > 1) s.add(n.id)
-    }
-    return s
-  }, [nodes, outgoingCount])
 
   const reachableFromStart = useMemo(() => {
     if (!startId) return new Set<string>()
@@ -217,7 +224,7 @@ function GraphCanvasInner() {
     const computed = cp?.nodes
     return nodes.map((n) => {
       const baseStyle: any = n.style ? { ...n.style } : {}
-      if (orphan.has(n.id) || nodesWithTooManyOut.has(n.id)) {
+      if (orphan.has(n.id)) {
         baseStyle.border = `2px solid ${COLOR_ERROR}`
         baseStyle.boxShadow = '0 1px 3px rgba(239,68,68,.3)'
       }
@@ -233,13 +240,13 @@ function GraphCanvasInner() {
       }
       return { ...n, style: baseStyle }
     })
-  }, [nodes, nodesWithTooManyOut, reachableFromStart, cp, onEditTask])
+  }, [nodes, reachableFromStart, cp, onEditTask])
 
   const styledEdges = useMemo(() => {
     const cycle = errors.some((e) => /Cycle/.test(e))
     const criticalIds = cp?.criticalNodeIds ?? new Set<string>()
     return edges.map((e) => {
-      const invalid = e.target === startId || nodesWithTooManyOut.has(e.source!) || cycle
+      const invalid = e.target === startId || cycle
       const onCp = criticalIds.has(e.source!) && criticalIds.has(e.target!)
       const style: any = e.style ? { ...e.style } : {}
       if (invalid) {
@@ -255,7 +262,7 @@ function GraphCanvasInner() {
       }
       return { ...e, style }
     })
-  }, [edges, errors, nodesWithTooManyOut, startId, cp])
+  }, [edges, errors, startId, cp])
 
   return (
     <div className="w-full h-full relative" style={{ width: '100%', height: '100%', background: COLOR_CANVAS_BG, backgroundImage: 'linear-gradient(135deg, #0a0f1e 0%, #0d1b3e 50%, #1a0533 100%)' }}>
