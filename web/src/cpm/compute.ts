@@ -48,15 +48,6 @@ export function computeCPM(input: ProjectJSON): ComputedResult {
     if (e.to === start) throw new ComputeError('START_HAS_INCOMING', 'Start has incoming edges')
     if (e.from === end) throw new ComputeError('END_HAS_OUTGOING', 'End has outgoing edges')
   }
-  const outCounts = new Map<NodeId, number>()
-  for (const n of nodes) outCounts.set(n.id, 0)
-  for (const e of edges) outCounts.set(e.from, (outCounts.get(e.from) ?? 0) + 1)
-  for (const n of nodes) {
-    if (n.type === 'task' && (outCounts.get(n.id) ?? 0) > 1) {
-      throw new ComputeError('MULTIPLE_OUTGOING', `More than 1 outgoing edge at node ${n.id}`)
-    }
-  }
-
   // Orphan/Erreichbarkeit: von Start aus erreichbare Knoten
   const reachable = new Set<NodeId>([start])
   const adj = new Map<NodeId, NodeId[]>()
@@ -145,18 +136,11 @@ export function computeCPM(input: ProjectJSON): ComputedResult {
     computedNodes[n.id] = { ES: es, EF: ef, LS: ls, LF: lf, slack, critical: slack === 0 }
   }
 
-  // Kritischer Pfad: entlang Successors slack==0
-  const path: NodeId[] = [start]
-  let cur = start
-  const visited = new Set<NodeId>([start])
-  while (cur !== end) {
-    const succs = successors.get(cur) ?? []
-    const next = succs.find((s) => (computedNodes[s]?.slack ?? 1) === 0)
-    if (!next || visited.has(next)) break
-    path.push(next)
-    visited.add(next)
-    cur = next
-  }
+  const criticalNodeIds = new Set<NodeId>(
+    Object.entries(computedNodes)
+      .filter(([, cn]) => cn.slack === 0)
+      .map(([id]) => id)
+  )
 
   const startISO = input.settings?.startDate
   let earliestFinishISO: string | undefined
@@ -169,7 +153,7 @@ export function computeCPM(input: ProjectJSON): ComputedResult {
   const durationAT = Math.max(...Object.values(computedNodes).map((c) => c.EF))
   return {
     nodes: computedNodes,
-    criticalPath: path,
+    criticalNodeIds,
     project: { durationAT, earliestFinishISO },
   }
 }

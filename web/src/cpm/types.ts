@@ -38,7 +38,7 @@ export interface ComputedNode {
 
 export interface ComputedResult {
   nodes: Record<NodeId, ComputedNode>
-  criticalPath: NodeId[]
+  criticalNodeIds: Set<NodeId>
   project: { durationAT: number; earliestFinishISO?: string }
 }
 
@@ -47,7 +47,6 @@ export type ComputeErrorCode =
   | 'CYCLE'
   | 'ORPHAN'
   | 'UNREACHABLE_END'
-  | 'MULTIPLE_OUTGOING'
   | 'START_HAS_INCOMING'
   | 'END_HAS_OUTGOING'
   | 'INVALID_DURATION'
