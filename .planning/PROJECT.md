@@ -35,9 +35,16 @@ Der kritische Pfad muss korrekt berechnet und klar sichtbar sein — alles ander
 - ✓ Datumformat DD.MM.YYYY durchgängig (4-stelliges Jahr) — v1.0
 - ✓ PNG-Export mit Ladeindikator, Snapshot-Panel mit Benennung — v1.0
 
-### Active
+## Current Milestone: v2.0 Multi-Predecessor CPM
 
-*(Wird mit nächstem Milestone definiert — `/gsd:new-milestone`)*
+**Goal:** Echte CPM-Parallelität — Task-Knoten dürfen beliebig viele ausgehende Kanten haben; der Algorithmus verarbeitet Merge-Knoten korrekt.
+
+**Target features:**
+- Aufhebung der 1-ausgehende-Kante-Einschränkung für Task-Knoten
+- CPM-Algorithmus sicher für Multi-Predecessor / Multi-Successor Graphen
+- UX-durchdachte Kantenerstellung und Validierungsfeedback
+
+### Active
 
 ### Out of Scope
 
@@ -82,4 +89,4 @@ Der kritische Pfad muss korrekt berechnet und klar sichtbar sein — alles ander
 | TaskNode border-longhand statt border-shorthand | jsdom ignoriert Shorthand-Properties | ✓ Good — Tests stabil |
 
 ---
-*Last updated: 2026-03-16 after v1.0 milestone*
+*Last updated: 2026-03-17 after v2.0 milestone start*
