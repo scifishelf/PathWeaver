@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Multi-Predecessor CPM
-status: in_progress
-stopped_at: "Completed 03-01-PLAN.md"
-last_updated: "2026-03-17T14:24:24Z"
+status: executing
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-17T14:29:25.662Z"
 last_activity: 2026-03-17 — Completed 03-01 (CPM guard removal + criticalNodeIds)
 progress:
   total_phases: 2
-  completed_phases: 0
-  total_plans: 4
-  completed_plans: 1
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
   percent: 25
 ---
 
@@ -51,6 +51,7 @@ Progress: [██░░░░░░░░] 25%
 - Trend: Stable
 
 *Updated after each plan completion*
+| Phase 03 P02 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,10 @@ Recent decisions affecting current work:
 - v2.0 architecture: criticalNodeIds Set<string> approach replaces greedy cpPairs walk — required for correct diamond highlighting
 - v2.0 safety: cycle detection via BFS in isValidConnection (getEdges + getOutgoers) — 1-outgoing limit previously made cycles structurally impossible
 - v2.0 stale closure: isValidConnection must read from useReactFlow().getEdges(), not closed-over edges state
+- [Phase 03]: isValidConnection dependency array uses [getEdges, getNodes] (stable refs from useReactFlow), not closed-over nodes/edges state
+- [Phase 03]: BFS cycle guard: walk outgoers of proposed target; if source found, reject connection
+- [Phase 03]: Edge criticality uses criticalNodeIds: both source AND target must be in the set (correct for diamond/multi-path topologies)
+- [Phase 03]: nodesWithTooManyOut removed entirely — multi-successor task nodes are valid and must never show error state
 
 ### Pending Todos
 
@@ -74,6 +79,6 @@ None — research confidence is HIGH, all change sites identified with exact lin
 
 ## Session Continuity
 
-Last session: 2026-03-17
-Stopped at: Completed 03-01-PLAN.md
+Last session: 2026-03-17T14:29:25.659Z
+Stopped at: Completed 03-02-PLAN.md
 Resume file: None

@@ -10,13 +10,13 @@
 - [x] **ALGO-01**: Nutzer kann von einem Task-Knoten beliebig viele ausgehende Kanten zeichnen (Guard-Entfernung aus `compute.ts`, `types.ts`, `GraphCanvas.tsx` atomar)
 - [x] **ALGO-02**: CPM-Berechnung ergibt korrekte FAZ-Werte bei Merge-Knoten (FAZ = max aller eingehenden FEZ)
 - [x] **ALGO-03**: Kritische-Pfad-Highlighting zeigt alle parallelen kritischen Äste (criticalNodeIds-Ansatz statt greedy single-path walk)
-- [ ] **ALGO-04**: Nutzer kann keinen Zyklus durch Drag-and-Drop erzeugen (BFS Cycle Detection in `isValidConnection` via `getEdges()`/`getOutgoers`)
-- [ ] **ALGO-05**: Duplicate-Edge-Guard verhindert doppelte Kanten zwischen demselben Knoten-Paar
-- [ ] **ALGO-06**: `isValidConnection` liest aktuellen Kantenzustand via `getEdges()` statt stale closure
+- [x] **ALGO-04**: Nutzer kann keinen Zyklus durch Drag-and-Drop erzeugen (BFS Cycle Detection in `isValidConnection` via `getEdges()`/`getOutgoers`)
+- [x] **ALGO-05**: Duplicate-Edge-Guard verhindert doppelte Kanten zwischen demselben Knoten-Paar
+- [x] **ALGO-06**: `isValidConnection` liest aktuellen Kantenzustand via `getEdges()` statt stale closure
 
 ### UX & Daten
 
-- [ ] **UX-01**: Multi-Successor-Knoten erhalten keinen roten Fehlerrahmen (`nodesWithTooManyOut` entfernt)
+- [x] **UX-01**: Multi-Successor-Knoten erhalten keinen roten Fehlerrahmen (`nodesWithTooManyOut` entfernt)
 - [ ] **UX-02**: HelpOverlay enthält keine veralteten "max. 1 ausgehende Kante"-Hinweise
 - [ ] **UX-03**: v1.0 Projektdateien (JSON) laden und berechnen korrekt ohne Migration
 - [ ] **UX-04**: `serialize.ts` dokumentiert die `${from}-${to}` Edge-ID-Annahme explizit
@@ -48,10 +48,10 @@
 | ALGO-01 | Phase 3 | Complete |
 | ALGO-02 | Phase 3 | Complete |
 | ALGO-03 | Phase 3 | Complete |
-| ALGO-04 | Phase 3 | Pending |
-| ALGO-05 | Phase 3 | Pending |
-| ALGO-06 | Phase 3 | Pending |
-| UX-01 | Phase 3 | Pending |
+| ALGO-04 | Phase 3 | Complete |
+| ALGO-05 | Phase 3 | Complete |
+| ALGO-06 | Phase 3 | Complete |
+| UX-01 | Phase 3 | Complete |
 | UX-02 | Phase 4 | Pending |
 | UX-03 | Phase 4 | Pending |
 | UX-04 | Phase 4 | Pending |
