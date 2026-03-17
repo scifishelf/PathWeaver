@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Multi-Predecessor CPM
-status: executing
+status: completed
 stopped_at: Completed 04-01 (help text cleanup, edge ID comment, v1.0 compat test)
-last_updated: "2026-03-17T15:41:34.325Z"
-last_activity: 2026-03-17 — Completed 03-01 (CPM guard removal + criticalNodeIds)
+last_updated: "2026-03-17T15:44:15.284Z"
+last_activity: 2026-03-17 — Completed 04-01 (help text cleanup, edge ID comment, v1.0 compat test)
 progress:
   total_phases: 2
   completed_phases: 2
