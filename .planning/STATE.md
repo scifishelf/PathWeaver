@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: Multi-Predecessor CPM
 status: completed
 stopped_at: Completed 04-01 (help text cleanup, edge ID comment, v1.0 compat test)
-last_updated: "2026-03-17T15:44:15.284Z"
+last_updated: "2026-03-17T15:53:56.787Z"
 last_activity: 2026-03-17 — Completed 04-01 (help text cleanup, edge ID comment, v1.0 compat test)
 progress:
   total_phases: 2
