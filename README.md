@@ -6,7 +6,7 @@
 
 Model project dependencies visually, identify your critical path instantly, and share results as PNG or JSON — no server required, no sign-up, no complexity.
 
-[![CI / Deploy](https://github.com/scifishelf/pathweaver/actions/workflows/deploy-hetzner.yml/badge.svg)](https://github.com/scifishelf/pathweaver/actions/workflows/deploy-hetzner.yml)
+[![CI / Deploy](https://img.shields.io/badge/CI%20%2F%20Deploy-Hetzner-60a5fa?logo=github-actions&logoColor=white)](https://github.com/scifishelf/pathweaver/actions/workflows/deploy-hetzner.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=black)](https://react.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22d3ee.svg)](LICENSE)
