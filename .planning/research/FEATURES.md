@@ -1,151 +1,212 @@
-# Feature Landscape
+# Feature Research
 
-**Domain:** Graph-based project planning tool (CPM/Netzplan)
-**Researched:** 2026-03-16
-**Research mode:** Features dimension — UI/UX patterns for "Clean & Professional"
-
----
-
-## Context: Current UI State
-
-Before mapping features, here is what the current implementation does and what gaps exist:
-
-| Area | Current state | Problem |
-|------|---------------|---------|
-| Header | `PathWeaver – Netzplan‑Tool (MVP)` in `text-3xl font-bold` | "MVP" is visible in production; no app identity |
-| Toolbar | 4 flat text buttons (`Export`, `Snapshots`, `Import`, `PNG`) with inline styles, no icons | Looks like a prototype; no visual hierarchy |
-| FAB (add node) | Green circle `45×45px` in top-left Panel, green `#16a34a` with dark green border | Visually isolated from toolbar; color clashes with the neutral theme |
-| Node design | White card with `border: 2px solid #d4d4d8`; critical nodes get `background: #dbeafe` (blue-100) | Background-only highlight is too subtle for the primary UX signal |
-| Critical path edges | `stroke: #2563eb`, `strokeWidth: 3` | Good start — blue is correct semantic color, but no animation or emphasis |
-| CP banner | Fixed, centered, `background: #dbeafe`, `border: 1px solid #bfdbfe` | Same light-blue as the node highlight — undifferentiated; hard to read |
-| Error banner | Fixed, centered, red background, non-interactive | `pointerEvents: none` makes it correct, but styling is raw |
-| Color theme | `CRITICAL_BG = '#dbeafe'` (Tailwind blue-100) — single exported token | Color system exists as one file but is not extended |
-| Typography | `Inter` font loaded via CSS, `@apply antialiased` — good baseline | Not used consistently; toolbar uses `fontSize: 12` inline |
-| Canvas background | `#eef2f7` (cool off-white) | Acceptable; aligns with professional tool aesthetic |
-| Inputs in nodes | Date/number/text fields with `border: 1px solid #d4d4d8` inline | No focus rings; no :focus-visible styles |
+**Domain:** Multi-predecessor / multi-successor CPM network diagram editor
+**Researched:** 2026-03-17
+**Confidence:** HIGH
 
 ---
 
-## Table Stakes
+## Context: What Already Exists
 
-Features users expect. Missing = product feels incomplete or unpolished.
+The following are already shipped in v1.0 and are NOT in scope for this research:
 
-| Feature | Why Expected | Complexity | Current Gap |
-|---------|--------------|------------|-------------|
-| Consistent design tokens (color, spacing, typography) | Every professional tool (Figma, draw.io, Miro) uses a visible design system. Without it the tool reads as a prototype. | Low | `CRITICAL_BG` is the only token; toolbar uses raw inline hex values |
-| Icon-based toolbar buttons | Text-only buttons (`Export`, `PNG`) look like unstyled `<button>` elements. Icon + label is the minimum for professional perception. | Low | No icons used anywhere |
-| Toolbar visual grouping | Miro, Figma, draw.io all group related actions with separators or button-group borders. Export/Import belong together; Snapshots is a history action. | Low | All 4 buttons in a flat row with identical styling |
-| Critical path emphasis that is immediately obvious | The core value prop of the tool is "kritischer Pfad muss korrekt berechnet und klar sichtbar sein". Currently the highlight is a subtle background color change. | Low–Medium | Blue-100 background is easy to miss; no border-color change on critical nodes |
-| CP info banner that looks intentional | The current banner shares the same blue-100 background as critical nodes. It reads as accidental. A CP summary needs visual weight. | Low | `background: #dbeafe` identical to node highlight |
-| Error state that is distinct from warning | Red error banner and the yellow `Banner.tsx` component (unused) exist separately. There is no visual language distinguishing error vs warning vs info. | Low | No semantic color roles defined |
-| "MVP" removed from title | An open-source project with "MVP" in the title signals unfinished work at first glance. | Very Low | `(MVP)` is hardcoded in `App.tsx` |
-| Consistent date formatting | Current code formats dates as `06.10.25` (2-digit year). `06.10.2025` is the DIN-correct form. | Very Low | Manual `.slice(2,4)` in `GraphCanvas.tsx` line 328 |
-| Loading indicator during PNG export | The DOM freezes 1–3s during `dom-to-image-more` rendering. No feedback → looks broken. | Low | No indicator exists |
-| Focus styles on node inputs | Inputs inside nodes have no visible focus ring. Keyboard navigation is invisible. | Low | `border: 1px solid #d4d4d8` is static |
-| Hover states on toolbar buttons | Buttons have no `:hover` styles. The UI feels non-interactive. | Very Low | All inline styles, no hover handling |
+- CPM algorithm (forward/backward pass, slack, critical path)
+- Topological sort (Kahn's algorithm) — already handles arbitrary fan-in correctly
+- `isValidConnection` guard blocking >1 outgoing edge on Task nodes
+- Cycle detection in both `validate.ts` and `isValidConnection`
+- Orphan / reachability detection from Start
+- Inline edit, localStorage, JSON/PNG export, workday calculation
+
+The v2.0 milestone removes a single artificial constraint: the `outCount >= 1` guard that limits
+Task nodes to one outgoing edge. This unlocks true parallelism without replacing the algorithm.
+
+The forward/backward pass in `compute.ts` already correctly uses:
+- `Math.max(...preds.map(EF))` for ES at merge nodes (forward pass)
+- `Math.min(...succs.map(LS))` for LF at fork nodes (backward pass)
+
+Both are the exact formulae required by CPM theory with multiple predecessors. The algorithm
+needs no changes — only the guard that prevents multi-successor graphs needs removal.
 
 ---
 
-## Differentiators
+## Feature Landscape
 
-Features that set this tool apart from a typical CPM calculator. Not expected, but valued by the target audience (developers and project managers using a self-hosted tool).
+### Table Stakes (Users Expect These)
+
+Features that must work once the fan-out constraint is removed. Missing any of these makes
+the milestone feel incomplete or broken.
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Arbitrary fan-out on Task nodes | Core milestone goal — the entire milestone is this | LOW | Remove the `outCount >= 1` guard in `isValidConnection` (GraphCanvas.tsx ~line 59). One condition, one line. |
+| Arbitrary fan-in on Task nodes | Parallel branches must converge somewhere | NONE | Already supported. No code change needed. `compute.ts` uses `maxEF` across all predecessors already. |
+| Correct CPM values after fan-out | Users trust the numbers — wrong slack is a silent bug | LOW | Algorithm already correct. After removing guard, verify with a diamond-topology test (A→B, A→C, B→D, C→D): EF(D) must equal max(EF(B),EF(C)). |
+| Remove MULTIPLE_OUTGOING check in compute.ts | Without this, the algorithm throws on any fan-out graph even if the guard is removed in UI | LOW | Lines 51–58 of `compute.ts` count outgoing edges and throw `ComputeError('MULTIPLE_OUTGOING', ...)`. Must be deleted alongside the UI guard. |
+| Drop MULTIPLE_OUTGOING from ComputeErrorCode | Type union must stay consistent with what the algorithm can actually throw | LOW | Remove from `ComputeErrorCode` in `types.ts`. One string in a union type. |
+| No duplicate edges | Two edges A→B with identical source/target would give A twice as much weight during forward pass | NONE | ReactFlow's `addEdge()` utility already prevents same source+target pairs. No action needed. |
+| Cycle detection still enforced | CPM is only defined on a DAG; cycles produce infinite loops in naive traversal | NONE | Both `isValidConnection` cycle check and `validate.ts` Kahn traversal remain unchanged. Neither is coupled to the fan-out guard. |
+| Remove nodesWithTooManyOut and its consumers | This memoized Set drives false red-error styling on multi-successor nodes after fan-out becomes legal | LOW | `nodesWithTooManyOut` in `GraphCanvas.tsx` (~lines 173–179) and all downstream uses in `styledNodes` and `styledEdges` (`invalid` flag, red stroke) must be removed. |
+| Multiple critical paths displayed | When two parallel paths both have zero slack, both must be highlighted | MEDIUM | Current `criticalPath` computation in `compute.ts` (lines 149–158) does a single greedy walk: `succs.find(slack===0)`. This misses the second critical path in a diamond where both branches have equal duration. See algorithm section below. |
+| Valid JSON export/import roundtrip | Existing projects must still load; new fan-out graphs must save correctly | LOW | `serialize.ts` represents edges as a flat list with no fan-out constraint. Verify no validation in `fromProjectJSON` blocks multi-edge sources. No change expected. |
+| Test coverage for multi-predecessor graphs | Open-source codebase — CPM correctness is publicly judged | MEDIUM | Add tests for: diamond (both branches equal → two critical paths), diamond (unequal branches → one critical path), node with 3+ successors, merge node computing maxEF correctly. |
+
+### Differentiators (Competitive Advantage)
+
+Features beyond the constraint removal that add real value and align with the project's core
+value proposition ("critical path must be correct and clearly visible").
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Critical path animated/glowing edge | Instead of just `strokeWidth: 3` + blue color, a subtle pulse or glow on critical edges makes the path immediately readable in a complex graph. draw.io does not do this. | Medium | Requires CSS animation on SVG path; ReactFlow supports `className` on edges |
-| Semantic color roles exposed as CSS variables | Allowing users (or self-hosters) to override `--color-critical`, `--color-error`, `--color-bg-canvas` via CSS makes the tool genuinely configurable. | Low | One `theme.ts` file needs expansion; CSS custom properties map trivially |
-| Node slack visualization as a subtle gradient or border opacity | For non-critical nodes, showing slack as a visual gradient (white → very light neutral based on slack amount) helps experts read network saturation at a glance. | Medium | Needs `slackRatio` calculation in `styledNodes`; design must be subtle to not compete with critical highlight |
-| Toolbar collapses to icon-only on narrow canvas | Professional diagramming tools (draw.io, Miro) hide labels when space is constrained. Keeps the canvas area large. | Medium | Requires responsive Panel logic; not in current `AppToolbar` |
-| Snapshot names | Snapshots currently show only `toLocaleString()` timestamp. Letting users name a snapshot ("Before re-ordering tasks") makes the history panel genuinely useful. | Low–Medium | Requires `name` field in snapshot schema; UI needs an inline rename input |
-| Keyboard shortcut for "Add task" | Every professional graph tool supports keyboard shortcuts. `T` to add a task node is the minimum. | Low | `addTaskNode` already exists; needs `useEffect` keydown listener |
+| Full multi-path critical highlighting | Most lightweight CPM tools show only one critical path when two are simultaneous. Highlighting all zero-slack paths is more correct and more useful. | MEDIUM | Replace single-path greedy walk with a set-based traversal that collects all zero-slack edges. `styledEdges` already uses a `cpPairs` Set for lookup — switching to a Set of all critical edges is straightforward. Requires changing `criticalPath: NodeId[]` in `ComputedResult` or adding a parallel `criticalEdges` structure. |
+| Critical path banner still accurate with multiple paths | The banner shows "Critical Path: N Working Days" — this remains meaningful even with multiple paths since all share the same project duration | LOW | No change needed to the banner. Duration is `max(EF)` across all nodes, which is unchanged. Banner remains correct. |
+| Inline visual confirmation that multi-edge connection was accepted | Users may be surprised the second edge connects silently after years of it being blocked | LOW | The existing red-to-neutral edge color transition on valid connection already provides this feedback through ReactFlow's built-in connection animation. No additional work needed. |
 
----
+### Anti-Features (Commonly Requested, Often Problematic)
 
-## Anti-Features
-
-Features to explicitly NOT build during this UI milestone.
-
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Dark mode | Adds significant CSS complexity; DIN network plans are conventionally white-background documents. Dark mode would make PNG exports look wrong. | Maintain white canvas as a constraint; the tool is a document editor, not an app |
-| Multiple color themes / theme picker | This is a distraction from the core work. Color system should be internal and consistent, not user-configurable via UI controls. | Use CSS variables internally for maintainability; don't expose a theme picker |
-| Drag-and-drop toolbar reordering | No user has asked for this. It is complex and adds no value for a single-user CPM tool. | Fixed action groups with clear hierarchy |
-| Node icon library / custom shapes | The DIN 69900 format defines the node layout. Custom shapes dilute the standard. Target audience knows the format. | Keep the existing 3-row grid exactly as-is; only improve styling |
-| Undo/redo history (beyond snapshots) | Full undo/redo requires command-pattern architecture. The snapshot system already provides a coarser version of this. | Invest in making the snapshot system more usable (naming, count indicator) instead |
-| Tooltips on every toolbar button | Over-engineering. Icon + label is sufficient. Tooltips only make sense for icon-only buttons. | Show label text next to icons; add `title` attribute as a fallback |
-| Animated node entrance | Adds visual noise. Nodes should appear immediately and cleanly. | No entrance animations; focus on static visual quality |
-| Right panel / properties sidebar | Would require layout restructuring and obscures the canvas. The inline-edit-in-node pattern already works well. | Keep editing in the node itself |
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| "Auto-layout" that restructures the graph when parallel branches are added | Users may want the graph to re-flow automatically on fan-out | Breaks user-positioned nodes, fights ReactFlow's drag model, requires a layout engine (ELK, Dagre) that adds substantial bundle size and complexity for marginal gain | Let users drag nodes manually. `snapGrid={[8,8]}` already helps alignment. |
+| Lag relationships (FS+2, SS, FF, SF) | Power users of MS Project expect dependency types beyond Finish-to-Start | DIN 69900 defines only FS relationships. Supporting lag would break the node data model, the DIN grid display, and add significant algorithm complexity. | Document as a future milestone topic. Out of scope per PROJECT.md. |
+| Multiple end nodes | Some schedules have multiple deliverables | CPM requires a single project end to compute a unique critical path duration. Multiple ends produce ambiguous project duration. | If needed later: auto-insert a virtual end node and wire all terminal nodes to it. Not in scope for v2.0. |
+| Replacing criticalPath array with a richer graph structure in the public API | Correct representation of multiple paths | Would break existing consumers in `styledEdges` (the `cpPairs` Set loop) and the Banner (which reads `cp.criticalPath`). Breaking change without user-facing benefit. | Additive approach: keep `criticalPath: NodeId[]` for the banner's path display, add `criticalEdges: Set<string>` for edge styling. Both can coexist. |
+| Auto-connecting orphan nodes to Start | Reduce setup friction | Silently mutating the graph violates user intent. Orphan detection exists precisely to surface unconnected nodes so users connect them intentionally. | Keep explicit orphan error feedback. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Consistent design tokens (CSS variables in theme.ts)
-  → All other visual features: icons, colors, banners, node highlights
+[Remove fan-out guard in isValidConnection (GraphCanvas.tsx)]
+    └──must be paired with──> [Remove MULTIPLE_OUTGOING check in compute.ts]
+                                  └──must be paired with──> [Drop MULTIPLE_OUTGOING from ComputeErrorCode in types.ts]
 
-Icon-based toolbar buttons
-  → Toolbar visual grouping (icons make grouping clearer)
-  → Toolbar collapses to icon-only (requires icon-based design first)
+[Remove fan-out guard]
+    └──requires cleanup of──> [Remove nodesWithTooManyOut memoization]
+                                  └──requires cleanup of──> [Remove nodesWithTooManyOut consumers in styledNodes]
+                                  └──requires cleanup of──> [Remove nodesWithTooManyOut consumers in styledEdges]
 
-Critical path emphasis (node border + background)
-  → CP info banner redesign (both must use the same semantic color)
-  → Critical path animated edge (builds on solid base styling)
+[Multiple critical paths rendering]
+    └──depends on──> [Fan-out guard removed] (otherwise no multi-path graphs can be created to test)
+    └──requires change to──> [criticalPath walk in compute.ts lines 149-158]
+    └──requires change to──> [styledEdges cpPairs Set in GraphCanvas.tsx]
 
-Error/Warning semantic color roles
-  → Distinct error banner
-  → Distinct warning state for graph validation messages
-
-Snapshot naming
-  → Requires snapshot schema change (add `name?: string` field)
-  → Should be done before or alongside snapshot UI refresh
-
-Keyboard shortcut for "Add task"
-  → Independent; can be shipped any time
+[Test coverage for multi-predecessor]
+    └──depends on──> [All above changes complete]
 ```
 
----
+### Dependency Notes
 
-## MVP Recommendation
+- **Fan-out guard removal requires two synchronous site changes:** the `isValidConnection` check
+  in `GraphCanvas.tsx` (UX layer) and the `outCounts` loop in `compute.ts` (algorithm layer).
+  Removing only the UI guard leaves the algorithm throwing `MULTIPLE_OUTGOING` on any fan-out
+  graph — a confusing half-broken state.
 
-For the "Ziel 2 — UI: Clean & Professional" milestone, prioritize in this order:
+- **nodesWithTooManyOut cleanup is mandatory, not optional:** This Set currently causes nodes
+  with >1 outgoing edge to get a red error border. After v2.0, that topology is legal. Leaving
+  the cleanup out would mean valid multi-successor nodes permanently show as errors.
 
-**Must ship (table stakes, very low → low complexity):**
-1. Remove "MVP" from title, clean up header
-2. Expand `theme.ts` into a real design token file (colors, border-radius, shadow levels)
-3. Add icons to toolbar buttons + visual grouping with a separator between Export/Import and Snapshots/PNG
-4. Redesign CP banner: distinct background (e.g., blue-600 with white text), heavier typographic weight
-5. Strengthen critical path node highlight: add `border: 2px solid #2563eb` to critical nodes (not just background)
-6. Fix date format to 4-digit year consistently
-7. Add loading indicator (spinner or button state change) during PNG export
-8. Add `:hover` and `:focus-visible` styles to all interactive elements
-
-**Should ship (differentiators, low–medium complexity):**
-9. Snapshot naming (requires small schema change; high usability gain)
-10. Keyboard shortcut for add-task (`T` key)
-
-**Defer:**
-- Animated/glowing critical path edges: Nice to have, but risks adding noise. Validate with a real project graph first.
-- Node slack gradient: High visual complexity; validate that it reads clearly before building.
-- Toolbar collapse: Only needed if the canvas feels crowded; not a first-milestone concern.
+- **Multiple critical paths is the only non-trivial algorithmic change:** The ES/EF/LS/LF
+  computation is already correct. Only the path *identification* step (lines 149–158 of
+  `compute.ts`) uses a single greedy walk that misses parallel critical paths.
 
 ---
 
-## Confidence Assessment
+## MVP Definition
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Current UI gaps | HIGH | Directly derived from reading the source code |
-| Table stakes (what looks professional) | HIGH | Based on well-established patterns in graph tools (draw.io, Miro, Figma, ReactFlow examples); no external search needed for this domain |
-| Anti-features rationale | HIGH | Derived from project constraints (DIN 69900, client-only, open-source) stated in PROJECT.md |
-| Complexity estimates | MEDIUM | Based on codebase familiarity; no external validation of implementation time |
-| Differentiator features | MEDIUM | Based on training knowledge of diagramming tool patterns; could be validated with user testing |
+### Launch With (v2.0)
+
+Minimum viable for this milestone. All items are P1 — missing any one leaves the feature broken
+or misleading.
+
+- [ ] Remove `outCount >= 1` guard from `isValidConnection` in `GraphCanvas.tsx`
+- [ ] Remove `MULTIPLE_OUTGOING` check from `compute.ts` (the `outCounts` loop, ~lines 51–58)
+- [ ] Drop `MULTIPLE_OUTGOING` from `ComputeErrorCode` union in `types.ts`
+- [ ] Remove `nodesWithTooManyOut` memoization and all downstream consumers from `GraphCanvas.tsx`
+- [ ] Fix critical path identification to collect all zero-slack paths (not just the first greedy one)
+- [ ] Add regression tests: diamond topology with equal branches, diamond with unequal branches, node with 3+ successors
+
+### Add After Validation (v2.x)
+
+- [ ] Visual "merge node" indicator (subtle badge on nodes with 2+ incoming edges) — only if user
+  testing reveals confusion about convergence topology
+- [ ] Workweek / holiday calendar customization — already deferred per PROJECT.md
+
+### Future Consideration (v3+)
+
+- [ ] Auto-layout via Dagre or ELK — only if graph sizes regularly exceed ~20 nodes
+- [ ] Lag relationships — requires algorithm and data model changes, separate milestone
+- [ ] Multiple end-node support with virtual end node — separate milestone
+
+---
+
+## Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Remove fan-out guard (both sites: UI + algorithm) | HIGH | LOW | P1 |
+| Remove nodesWithTooManyOut + all consumers | HIGH | LOW | P1 |
+| Fix critical path identification for multiple paths | HIGH | MEDIUM | P1 |
+| Regression test suite for multi-predecessor topologies | HIGH | MEDIUM | P1 |
+| Drop MULTIPLE_OUTGOING from ComputeErrorCode | MEDIUM | LOW | P1 (type cleanup) |
+| Visual merge node indicator | LOW | LOW | P3 |
+| Auto-layout engine | MEDIUM | HIGH | P3 |
+
+**Priority key:**
+- P1: Must have for v2.0 launch
+- P2: Should have, add when possible
+- P3: Nice to have, future consideration
+
+---
+
+## Algorithm Correctness Reference
+
+CPM with multiple predecessors is mathematically well-understood (HIGH confidence — PMI,
+Mosaic Projects):
+
+**Forward pass (ES of a merge node with N predecessors):**
+`ES(n) = max(EF(p) for all predecessors p of n)`
+Already implemented: `compute.ts` line 104 — `Math.max(...preds.map((p) => EF.get(p) ?? 0))`
+
+**Backward pass (LF of a fork node with N successors):**
+`LF(n) = min(LS(s) for all successors s of n)`
+Already implemented: `compute.ts` line 124 — `Math.min(...succs.map((s) => LS.get(s)!))`
+
+**Topological order:**
+Kahn's algorithm in `topoSort()` is agnostic to out-degree. It handles arbitrary fan-in and
+fan-out without modification.
+
+**Critical path identification (needs fix):**
+A node is on the critical path if `slack = LS - ES = 0`. Multiple disconnected paths can all
+satisfy this simultaneously when parallel branches have equal duration. The current greedy walk
+at lines 149–158 misses this case — it follows only the first zero-slack successor per node.
+
+Correct approach: after computing all node slacks, collect all edges `(u, v)` where both
+`computedNodes[u].slack === 0` and `computedNodes[v].slack === 0`. This set of edges represents
+the complete critical subgraph. The existing `cpPairs` Set in `styledEdges` is already structured
+to accept this — it just needs to be populated from a complete edge enumeration rather than a
+single path walk.
 
 ---
 
 ## Sources
 
-- Source code analysis: `/web/src/components/AppToolbar.tsx`, `GraphCanvas.tsx`, `graph/TaskNode.tsx`, `graph/StartNode.tsx`, `graph/EndNode.tsx`, `graph/theme.ts`, `index.css`, `App.tsx`
-- Project constraints: `.planning/PROJECT.md`
-- Architecture context: `.planning/codebase/ARCHITECTURE.md`
-- Domain knowledge: ReactFlow 11 documentation patterns, DIN 69900 standard node format, professional diagramming tool conventions (draw.io, Miro, Figma) — training data, MEDIUM confidence for specific implementation details
+- [PMI — Critical Path Method Calculations](https://www.pmi.org/learning/library/critical-path-method-calculations-scheduling-8040)
+  — authoritative on max-EF forward pass and min-LS backward pass rules
+- [Mosaic Projects — Basic CPM Calculations PDF](https://www.mosaicprojects.com.au/PDF/Schedule_Calculations.pdf)
+  — detailed worked examples with merge (fan-in) and burst (fan-out) nodes
+- [PMI SP — Forward and Backward Pass test](https://trustedinstitute.com/concept/pmi-sp/critical-path-method/forward-and-backward-pass/)
+  — confirms max/min rules at convergence/divergence points
+- [ReactFlow — Preventing Cycles example](https://reactflow.dev/examples/interaction/prevent-cycles)
+  — `isValidConnection` + `getOutgoers` pattern; confirms cycle detection remains viable after removing fan-out guard
+- [ReactFlow — addEdge utility](https://reactflow.dev/api-reference/utils/add-edge)
+  — confirms duplicate edge prevention is built-in, no custom code needed
+- [ReactFlow — IsValidConnection API](https://reactflow.dev/api-reference/types/is-valid-connection)
+  — type reference for the guard function
+- [ProjectSmart — Multiple Critical Paths discussion](https://www.projectsmart.co.uk/forums/viewtopic.php?t=1488)
+  — confirms multiple simultaneous critical paths are a real, expected CPM scenario
+- Source code analysis: `web/src/cpm/compute.ts`, `web/src/graph/validate.ts`,
+  `web/src/components/GraphCanvas.tsx`, `web/src/cpm/types.ts`
+
+---
+*Feature research for: PathWeaver v2.0 — Multi-Predecessor CPM*
+*Researched: 2026-03-17*

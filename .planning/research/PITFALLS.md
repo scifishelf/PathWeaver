@@ -1,289 +1,214 @@
-# Domain Pitfalls
+# Pitfalls Research
 
-**Domain:** React/TypeScript code quality improvement and UI redesign (existing codebase)
-**Project:** PathWeaver
-**Researched:** 2026-03-16
-**Confidence:** HIGH (based on direct codebase analysis + established engineering patterns)
+**Domain:** Adding multi-predecessor/multi-successor CPM support to existing single-outgoing-edge tool
+**Project:** PathWeaver v2.0
+**Researched:** 2026-03-17
+**Confidence:** HIGH (grounded in direct codebase analysis + verified CPM algorithm theory + ReactFlow 11 source patterns)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, data loss, or hard-to-diagnose regressions.
-
----
-
-### Pitfall 1: localStorage Key Migration Without Backward Compatibility Guard
+### Pitfall 1: Single-Path Critical Path Traversal Breaks on Diamond Graphs
 
 **What goes wrong:**
-The current `autosave.ts` stores all data under two keys: `pw_autosave_current` and `pw_snapshots_v1`. When snapshot IDs change from `Date.now()` string format to `crypto.randomUUID()` + suffix format, the new code still reads the old format correctly — but if the key *prefix* or *structure* is ever changed, every existing user loses their autosaved project silently. The `loadCurrent()` and `loadSnapshot()` functions already swallow all errors with empty `catch {}` blocks, so data loss becomes invisible.
+`computeCPM` in `compute.ts` calculates slack and `critical: boolean` correctly for all nodes (lines 134–146), but the `criticalPath` array is built by a greedy single-next-node walk (lines 149–159). The loop picks the first successor with `slack === 0` and moves to it. In a diamond graph (A branches to B and C, both converge at D), both B→D and C→D may have `slack === 0` — two parallel critical paths. The current traversal picks one branch arbitrarily (whichever `Array.find()` returns first), produces a path like `[start, A, B, D, end]`, and silently drops the parallel branch `C`. The CP Banner says "7 Working Days", which is correct, but the highlighting only shows half the critical path — a correctness failure visible to users.
 
 **Why it happens:**
-The silent catch pattern in `autosave.ts` (lines 10, 18, 32) was designed to be resilient, but it hides migration failures. A JSON structure change (e.g., the `settings.version` field becoming `'1.1'`) causes `validateProjectJSON` to reject the loaded data, and the app silently starts with an empty graph — losing the user's work.
+The existing code was designed for a linear-chain constraint (max 1 outgoing edge per task), so a fork could never produce two parallel zero-slack branches. Removing the `MULTIPLE_OUTGOING` constraint without updating the traversal algorithm exposes this assumption.
 
-**Consequences:**
-- User opens app after update, graph is gone with no error message
-- No way to diagnose what happened (error was caught and discarded)
-- Only affects users with existing localStorage data (not reproducible in fresh tests)
-
-**Prevention:**
-- Before changing any localStorage key name or data shape, write a migration function that reads the old key and writes the new key, then deletes the old key
-- Migration must run once on first load, before the main `loadCurrent()` call
-- Keep `validateProjectJSON` version-aware (distinguish "unknown version" from "corrupt data")
-- Add `console.error` to all `catch {}` blocks before any migration work, so failures become visible during development
+**How to avoid:**
+Replace the greedy-walk with a set-based approach: after computing `critical: boolean` for all nodes, mark all edges `(u → v)` where both `computedNodes[u].critical && computedNodes[v].critical` as critical edges. The critical "path" becomes a critical subgraph (set of nodes + edges), not a single array. The CP Banner can display duration from the result; edge highlighting uses the edge set directly. If a single path array is required downstream (e.g., for the banner or export), use a topological DFS collecting all zero-slack nodes.
 
 **Warning signs:**
-- PR that changes key names in `autosave.ts` without a migration block
-- PR that bumps `settings.version` without updating `validateProjectJSON` to handle the old version
-- `catch {}` blocks left empty when migrating
+- Test with diamond topology (Start → A → B → End, Start → A → C → End, B and C same duration) passes `criticalPath.length` check but shows only one branch highlighted
+- `criticalPath` array does not contain all nodes with `slack === 0`
+- Banner shows correct duration but graph highlights are asymmetric on a symmetric diamond
 
-**Phase:** Code Quality & Stability (Phase 1) — must be addressed before any localStorage key changes
+**Phase to address:** Algorithm Phase (first phase of v2.0) — fix before any UI work
 
 ---
 
-### Pitfall 2: `html-to-image` Captures the ReactFlow Container Including UI Controls
+### Pitfall 2: `isValidConnection` Reads Stale `edges` Closure in the Existing Guard
 
 **What goes wrong:**
-The current PNG export in `AppToolbar.tsx` (line 190) targets `.react-flow` — the outermost ReactFlow wrapper. `dom-to-image-more` and `html-to-image` both capture everything inside that element, including the MiniMap, Controls panel, and the floating AppToolbar Panel. The `toPng` call will capture the toolbar buttons ("Export", "Snapshots", "Import", "PNG") inside the exported image because the `<Panel position="top-right">` is rendered inside `.react-flow`.
-
-When migrating to `html-to-image`, the API is nearly identical (`toPng(element, options)`), but the `bgcolor` option name changes to `backgroundColor`, and the `quality` option is not supported for PNG (only JPEG). Passing an unsupported option silently does nothing, so the export still works but the explicit quality hint is ignored.
+In `GraphCanvas.tsx` lines 50–65, `isValidConnection` closes over `edges` from `useEdgesState`. When a user rapidly creates multiple connections in quick succession, React may batch updates such that `edges` inside the closure still reflects the pre-connection state. The current guard `edges.filter(e => e.source === from.id).length` reads the stale array and incorrectly allows a second outgoing connection that should be blocked (in the old 1-outgoing regime). After removing the outgoing-edge limit, the stale-closure issue becomes relevant for different guards (e.g., duplicate-edge prevention), but the underlying problem remains. **This is a latent bug that already exists; v2.0 work must not reproduce it in any new guard logic.**
 
 **Why it happens:**
-The ReactFlow DOM structure nests all panels inside the `.react-flow` root. Both libraries capture the full subtree. The migration is tempting to do as a drop-in replacement without auditing what gets captured.
+`isValidConnection` is defined with `useCallback([nodes, edges])`. React batches state updates, so between two fast connection events, the `edges` snapshot inside the callback can be the pre-first-connection value. `addEdge` (the ReactFlow utility used in `onConnect`) itself deduplicates edges by `source+target`, so it provides partial protection, but `isValidConnection` running before `addEdge` can still let through connections that `addEdge` deduplicates silently — creating a phantom "connection allowed" visual followed by a "nothing happened" result that confuses users.
 
-**Consequences:**
-- UI controls (buttons, minimap) appear in exported PNG — unprofessional result
-- Export freeze of 1–3s remains unchanged (both libraries block the main thread)
-- If `quality: 1` option is left in the `toPng` call for `html-to-image`, it silently no-ops (PNG is always lossless)
-
-**Prevention:**
-- Switch the capture target from `.react-flow` to `.react-flow__renderer` (the inner canvas area only) or add a dedicated wrapper div around only the graph content
-- Audit what is inside the target element before and after migration using browser DevTools
-- For `html-to-image`, use `filter` option to exclude `.react-flow__controls`, `.react-flow__minimap`, and `.react-flow__panel` elements from capture
-- Remove the `quality` option for PNG calls; it only applies to `toJpeg`
+**How to avoid:**
+Use `useReactFlow().getEdges()` inside `isValidConnection` instead of the closed-over `edges` state snapshot. `getEdges()` returns the current live edges at call time, not the snapshot from the last render. For v2.0 guards (cycle prevention, duplicate edge), always use `getEdges()` / `getNodes()` inside the callback body, not the closure variables.
 
 **Warning signs:**
-- PR that swaps `dom-to-image-more` for `html-to-image` with only the import line changed
-- No visual regression check (screenshot comparison) after the migration
-- The temporary `<style id="pw-export-style">` injection pattern (lines 193–199) should still be reviewed — `html-to-image` handles inline styles differently and may not honour `!important` overrides injected at runtime
+- `isValidConnection` callback has `edges` in its `useCallback` dependency array rather than calling `getEdges()`
+- User can create a duplicate edge between two nodes by clicking very fast
+- New cycle-detection guard inside `isValidConnection` uses `nodes`/`edges` from closure rather than `getNodes()`/`getEdges()`
 
-**Phase:** Code Quality & Stability (Phase 1) — first task after library swap
+**Phase to address:** Algorithm + ReactFlow integration phase — fix the guard before removing the outgoing-edge limit
 
 ---
 
-### Pitfall 3: `as any` Removal That Breaks ReactFlow Integration
+### Pitfall 3: Cycle Detection Not Enforced at the UI Level After Removing the 1-Outgoing Constraint
 
 **What goes wrong:**
-The codebase has 44+ `as any` casts, heavily concentrated in `GraphCanvas.tsx` and `serialize.ts`. Many of these are not careless shortcuts — they are necessary bridges between ReactFlow's `Node` generic type (`Node<TData>`) and the app's typed `TaskNode` data shape. Removing all `as any` casts without replacing them with proper generic type parameters will cause TypeScript errors on every call to `setNodes`, `onNodesChange`, and anywhere `n.data` is accessed.
+Currently, the 1-outgoing-edge constraint in `isValidConnection` makes cycles structurally impossible (a linear chain cannot form a cycle). After removing this constraint, cycles become reachable through normal user interaction (e.g., connect A→B, then B→A). The existing `validateGraph` in `graph/validate.ts` detects cycles using Kahn's algorithm and adds "Cycle detected" to the error array — but this is a *display-only* guard: it shows an error banner but does not prevent the edge from existing in the graph state. The `computeCPM` call is skipped when `errors.length > 0`, so the algorithm never sees the cycle. However, the edge persists in `edges` state and is saved to localStorage.
+
+The gap: a user can create a cycle, see the red banner, close the browser, and reopen — the cycle is still there. More importantly, without real-time cycle prevention in `isValidConnection`, users can accidentally create cycles and have no interactive guidance that their drag attempt was rejected.
 
 **Why it happens:**
-ReactFlow 11's `Node` type uses a generic `TData = any` default. The codebase chose not to thread a typed `Node<TaskData>` throughout, using `as any` at boundaries instead. The correct fix requires either (a) typing all ReactFlow state as `Node<TaskData | StartData | EndData>` and using discriminated unions, or (b) using type guards at access sites. Both approaches are non-trivial.
+`validateGraph` was designed as a post-hoc display validator, not a connection-time preventer. The 1-outgoing constraint served as an accidental cycle preventer. Removing it without adding a proper connection-time cycle check leaves the graph vulnerable.
 
-**Consequences:**
-- Attempting a "find all `as any` and remove" approach causes 20+ TypeScript compile errors
-- Discriminated union approach requires changes in `GraphCanvas.tsx`, `AppToolbar.tsx`, `serialize.ts`, and all three node components
-- Risk of introducing `as unknown as X` casts (false fix) which TypeScript accepts but are equally unsafe
-
-**Prevention:**
-- Audit `as any` casts before removing them: categorize into "true unknown input" (JSON parsing, external data — should become type guards) vs "ReactFlow boundary" (should become typed generics) vs "lazy shortcut" (fix with proper narrowing)
-- Fix ReactFlow boundary casts first by adding `Node<Record<string, unknown>>` throughout, then narrow per-component
-- Prioritize `serialize.ts` casts (highest risk, pure logic, no ReactFlow dependency) — these can be typed independently
-- Do not remove `as any` from `setNodes(nn as any)` calls until the ReactFlow node type is parameterized project-wide
+**How to avoid:**
+Add cycle detection to `isValidConnection`: before allowing a connection `(source → target)`, check whether `target` can already reach `source` through existing edges (i.e., adding this edge would create a cycle). Use a BFS/DFS from `target` using `getEdges()` and `getNodes()` to check reachability. ReactFlow's official "Preventing Cycles" example demonstrates this exact pattern and is available at `reactflow.dev/examples/interaction/prevent-cycles`. This check runs synchronously during the drag connection — if it returns `false`, ReactFlow shows the connection as invalid (grey/disabled) before the user releases the mouse.
 
 **Warning signs:**
-- PR description says "remove all as any" without specifying which category
-- TypeScript strict mode errors spiking after the PR
-- New `as unknown as X` casts appearing (swapping one unsafe cast for another)
+- `isValidConnection` does not include a cycle-reachability check after removing the outgoing-edge limit
+- User can drag B→A after A→B exists and the connection is accepted (green indicator) even momentarily
+- Cycle error appears in the banner but the edge was created (edge is visible in the graph)
 
-**Phase:** Code Quality & Stability (Phase 1) — serialize.ts first, then ReactFlow types
-
----
-
-## Moderate Pitfalls
-
-Mistakes that create visible bugs, test failures, or significant rework.
+**Phase to address:** Algorithm + ReactFlow integration phase — cycle guard must be in place before removing the outgoing-edge limit in production
 
 ---
 
-### Pitfall 4: Testing ReactFlow Components Without Required JSDOM Polyfills
+### Pitfall 4: `MULTIPLE_OUTGOING` Error Code Removal Breaks Existing Tests
 
 **What goes wrong:**
-The existing `vitest.setup.ts` already polyfills `ResizeObserver` — but ReactFlow 11 requires additional browser APIs that JSDOM does not provide: `DOMMatrixReadOnly`, `SVGSVGElement.getScreenCTM()`, and CSS custom property computation. Without these, rendering `GraphCanvas` or any component that imports from `reactflow` in a test will throw uncaught errors or produce empty renders, causing tests to pass vacuously (no assertions on actual content).
+`compute.ts` lines 51–58 throw `ComputeError('MULTIPLE_OUTGOING', ...)` for any task node with more than 1 outgoing edge. `compute.test.ts` does not explicitly test this code path, but `validate.test.ts` and indirect tests may assert on the full list of valid error codes (the `ComputeErrorCode` union in `types.ts` line 45–53 includes `'MULTIPLE_OUTGOING'`). When the guard is removed from `computeCPM`, any test that constructs a graph with multiple outgoing edges and expects a `ComputeError` with code `MULTIPLE_OUTGOING` will start failing — or worse, passing for the wrong reason (the error is no longer thrown, so `expect(() => ...).toThrow()` would fail).
+
+Additionally, `GraphCanvas.tsx` computes `nodesWithTooManyOut` (lines 173–179) and applies error styling to those nodes. After removing the limit, this logic becomes dead code that marks valid nodes as errors. If it is not removed, users will see red borders on nodes that have valid multiple outgoing edges.
 
 **Why it happens:**
-ReactFlow 11's internal layout engine calls `getBoundingClientRect()` and `getComputedStyle()` during node positioning. JSDOM returns zeroes for all measurements. The existing `App.test.tsx` smoke test passes because it only checks for `rf__wrapper` presence (the outer div always renders) without testing any visual state.
+The `MULTIPLE_OUTGOING` concept is embedded in three places: the type union, the compute guard, and the UI highlighting. A partial removal (e.g., only removing the compute guard) leaves the type definition and UI code contradicting each other.
 
-**Consequences:**
-- Tests for node rendering pass but don't verify actual rendered content
-- Integration tests for CPM highlighting (critical path color changes) will always fail or require mocks that make the test worthless
-- `AppToolbar` tests that trigger import and check graph updates will see `setNodes` called but no visual result because ReactFlow measurement hooks return no-op
-
-**Prevention:**
-- Keep ReactFlow component tests at smoke-test level only (does it render without crashing)
-- Test *logic* separately: `validateGraph`, `computeCPM`, `serialize`, `workdays` are pure functions with no ReactFlow dependency — these are the high-value test targets
-- For AppToolbar interaction tests that involve import/export, mock `fromProjectJSON` and `toProjectJSON` rather than exercising the full DOM
-- Use Playwright E2E for any test that requires actual ReactFlow behavior (drag, connect, visual state)
-- Add `DOMMatrix` polyfill to `vitest.setup.ts` if testing any component that uses ReactFlow's transform utilities
+**How to avoid:**
+Remove `'MULTIPLE_OUTGOING'` from the `ComputeErrorCode` union only after confirming no test asserts on it. Remove the `nodesWithTooManyOut` memo and its usage in `styledNodes` and `styledEdges` simultaneously with removing the compute guard. Run the full test suite after each removal step, not just at the end. Add a new test that explicitly verifies a diamond graph computes without error (regression guard for the removal).
 
 **Warning signs:**
-- Test for critical path highlighting that always passes even when `CRITICAL_BG` is not applied
-- Test file that renders `<GraphCanvas />` and asserts on node styles — styles will always be empty in JSDOM
-- Coverage report showing high % on `GraphCanvas.tsx` through a test that does not actually assert anything meaningful
+- `compute.test.ts` has a test that expects `MULTIPLE_OUTGOING` and the test is simply deleted rather than updated
+- `nodesWithTooManyOut` still computed in `GraphCanvas.tsx` after removing the outgoing-edge limit
+- Red border appears on a task node with 2 outgoing edges (the node is valid in v2.0)
+- TypeScript still references `MULTIPLE_OUTGOING` in a `switch` case that is now unreachable
 
-**Phase:** Code Quality & Stability (Phase 1, test coverage tasks)
+**Phase to address:** Algorithm phase — remove all three locations atomically
 
 ---
 
-### Pitfall 5: Tailwind v4 Class Changes Breaking Existing Inline Styles
+### Pitfall 5: Forward Pass Produces Incorrect FAZ When Predecessors Are Processed Out of Order
 
 **What goes wrong:**
-The project uses Tailwind v4 (`"tailwindcss": "^4.1.14"`) with the new CSS-first configuration (`@import "tailwindcss"` in `index.css`). The codebase mixes two styling approaches: React inline `style={{}}` objects (used heavily in `GraphCanvas.tsx`, `AppToolbar.tsx`, `TaskNode.tsx`) and Tailwind utility classes (used in `Modal.tsx`, `AppToolbar.tsx` error modal). During a visual redesign, adding new Tailwind classes to components that currently use inline styles can cause specificity conflicts — Tailwind's generated CSS classes may be overridden by inline styles, or vice versa, creating unpredictable visual results.
+The forward pass in `computeCPM` (lines 97–109) iterates in topological order and for each node computes `maxEF = Math.max(...preds.map(p => EF.get(p) ?? 0))`. This is correct in principle — FAZ = MAX(FEZ of all predecessors). However, there is a subtle initialization risk: if `EF.get(p)` returns `undefined` for a predecessor that has not yet been processed, the `?? 0` fallback silently treats that predecessor as having EF=0 rather than throwing. In a well-formed DAG processed in topological order, this cannot happen. But if a graph has a hidden dependency ordering bug (e.g., an edge `A→B` that topological sort omits because of a data inconsistency between `edges` and `nodes` arrays), the `?? 0` silently produces wrong results instead of a detectable error.
+
+This becomes more likely in v2.0 because multi-predecessor graphs have more edges, increasing the surface area for `edges` array inconsistency (e.g., an edge referencing a node ID that exists in `edges` but was deleted from `nodes`).
 
 **Why it happens:**
-Inline `style` attributes always have the highest specificity in CSS and cannot be overridden by class-based rules (without `!important`). Components like `AppToolbar.tsx` (line 64) and `TaskNode.tsx` use only inline styles for their layout and colors. Adding Tailwind classes to these components for the redesign will appear to work but the inline styles will silently win for any property declared in both places.
+The `?? 0` fallback was safe under the single-outgoing constraint because the graph was simpler. In complex DAGs, undefined-EF is a data integrity signal that should surface as a compute error, not a silent zero.
 
-**Consequences:**
-- Design tokens (e.g., a new brand color applied via `bg-blue-600`) do not appear because an inline `background: '#fff'` overrides it
-- Inconsistent behavior: some components respond to Tailwind design tokens, others ignore them silently
-- Debugging requires knowing which properties are inline vs class-based for each component
-
-**Prevention:**
-- Choose one styling approach per component and migrate fully: do not mix inline styles and Tailwind classes in the same element for the same CSS property
-- During redesign, create a `cn()` utility (e.g., with `clsx`) to compose class names, and migrate inline styles to Tailwind classes systematically, component by component
-- ReactFlow's own nodes (`TaskNode`, `StartNode`, `EndNode`) are special: their outer `<div>` uses inline styles because ReactFlow measures them for layout. Only use Tailwind classes for inner content elements, not the outer node wrapper
-- Test visual output in browser after each component migration, not just in JSDOM
+**How to avoid:**
+Assert that all predecessors have a defined EF at the point of computation. Replace `EF.get(p) ?? 0` with a strict lookup: `if (!EF.has(p)) throw new ComputeError('INTERNAL_ORDER', ...)`. This converts silent wrong-answer bugs into visible failures. The `validateProjectJSON` and `validateGraph` functions should also verify that all edge `from`/`to` IDs reference existing nodes — strengthen the import-time check before the algorithm runs.
 
 **Warning signs:**
-- Tailwind classes added to a component but visual change not visible in browser
-- Mixed styling in the same JSX element: `<div className="bg-blue-600" style={{ background: '#fff' }}>`
-- "Why doesn't this class work?" appearing in PR comments
+- Forward pass produces FAZ values of 0 for nodes with multiple predecessors
+- `EF.get(predecessor)` evaluates to `undefined` in a test scenario
+- Two-predecessor merge node shows FAZ equal to the shorter predecessor's FEZ instead of the longer
 
-**Phase:** UI Redesign (Phase 2)
-
----
-
-### Pitfall 6: `validate()` Called via `setTimeout` Capturing Stale Closure State
-
-**What goes wrong:**
-In `GraphCanvas.tsx`, `validate()` is defined as a `useCallback` that closes over `nodes` and `edges` (line 108–110). It is called in two places via `setTimeout(() => validate(), 0)` — inside `setNodes` updater (line 82) and in `onNodesChange`/`onEdgesChange` handlers (lines 245, 250). Because `validate` is captured at the time the `setTimeout` is scheduled, it may reference stale `nodes`/`edges` values from the previous render cycle, causing the error state to be one interaction behind.
-
-During a code quality phase that replaces `setTimeout` with proper `useEffect` patterns, this is easy to fix incorrectly: moving `validate()` into a `useEffect([nodes, edges])` is correct, but if `validate` itself is included in the effect's dependency array (which ESLint's exhaustive-deps rule will require), and `validate` is recreated on every render due to a missing `useCallback` or an unstable dependency, this creates an infinite effect loop.
-
-**Why it happens:**
-The current code works "well enough" because ReactFlow batches state updates and the 0ms timeout fires after React reconciliation. But it is fragile. The exhaustive-deps lint rule is likely disabled or suppressed for these callbacks.
-
-**Consequences:**
-- Refactoring the timing incorrectly introduces infinite re-render loops
-- Removing the `setTimeout` without understanding the batching creates validation races
-- Adding `validate` to a `useEffect` dependency array without memoizing it causes the effect to run on every render
-
-**Prevention:**
-- The correct pattern is: one `useEffect` that fires when `nodes` or `edges` changes and calls validation + autosave, with `validate` extracted to a stable function that takes `nodes` and `edges` as parameters (not from closure)
-- When refactoring, run the ESLint `react-hooks/exhaustive-deps` rule and fix each warning carefully — do not suppress it
-- Check that `validate` in `useCallback` has `[nodes, edges]` in its dependency array; if it does, it is recreated on every state change and should not be called inside `setNodes` updater
-
-**Warning signs:**
-- `useEffect` that runs continuously (check React DevTools "Profiler" tab for re-renders)
-- ESLint warning `react-hooks/exhaustive-deps` suppressed with `// eslint-disable-next-line`
-- Validation error appearing one click late (stale closure symptom)
-
-**Phase:** Code Quality & Stability (Phase 1, setTimeout bugfix tasks)
+**Phase to address:** Algorithm phase — add assertions alongside forward pass rewrite
 
 ---
 
-### Pitfall 7: JSON Schema Validation Not Covering the `computed` Field on Export
+## Technical Debt Patterns
 
-**What goes wrong:**
-`toProjectJSON` optionally includes a `computed` field (the `ComputedResult`) in the exported JSON (line 29 of `serialize.ts`). The `validateProjectJSON` function does not check for this field and does not strip it on import. When re-imported, `fromProjectJSON` ignores it because it only maps `nodes` and `edges`. This is currently harmless, but it creates a schema inconsistency: exported files contain a field that `json-schema.v1.json` does not document (based on the PROJECT.md reference to the schema file), making exported files non-schema-valid.
-
-If the schema validation task (from PROJECT.md requirements) validates the file before import and the schema is strict, it will reject valid exports as "invalid".
-
-**Consequences:**
-- Users who export and re-import their own files get a schema validation error
-- Schema enforcement blocks legitimate round-trip use case
-
-**Prevention:**
-- Either remove `computed` from export (it is derived data, can always be recalculated from `nodes`/`edges`) or add it to the schema as an optional field
-- Update `validateProjectJSON` to explicitly allow and ignore unknown top-level fields (use an open schema)
-- Add a serialization round-trip test: export → import → compare nodes and edges (not computed)
-
-**Warning signs:**
-- `json-schema.v1.json` does not have a `computed` property defined
-- Import of a freshly exported file fails schema validation
-- `toProjectJSON` and `fromProjectJSON` diverge in their understanding of the data shape
-
-**Phase:** Code Quality & Stability (Phase 1, JSON import validation task)
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Keep `criticalPath` as a single `NodeId[]` array even in multi-path cases | No downstream API change | Silently drops parallel critical branches; misleading for diamond graphs | Never for v2.0 — must represent full critical subgraph |
+| Keep `nodesWithTooManyOut` memo but just make it always-empty | Quick code change, no test breakage | Dead computation on every render; confuses future readers | Never — remove it entirely |
+| Guard `isValidConnection` with stale `edges` closure instead of `getEdges()` | No refactor needed | Occasional duplicate edges or incorrect "valid" signals under rapid input | Never — closure staleness is a known ReactFlow anti-pattern |
+| Extend `settings.version` to `'2.0'` immediately | Clear versioning signal | Breaks `validateProjectJSON` for all existing v1.0 JSON files until migration code is added | Only if migration code ships in the same commit |
+| Skip updating `validate.test.ts` when removing `MULTIPLE_OUTGOING` | Faster PR | Tests do not cover the newly valid topology; regression surface grows | Never — tests must verify what is now valid, not just what was always valid |
 
 ---
 
-## Minor Pitfalls
+## Integration Gotchas
 
-Mistakes that create polish or maintenance issues but do not block functionality.
-
----
-
-### Pitfall 8: Date Format Inconsistency Surviving the Redesign
-
-**What goes wrong:**
-`formatDateShort()` in `workdays.ts` formats dates as `DD.MM.YY` (2-digit year, line 31: `d.getFullYear() % 100`). The PROJECT.md lists "Datumformat: Konsistenz (aktuell '06.10.25' vs '06.10.2025')" as a UI goal. The year-2000 truncation is intentional (2-digit year is conventional in German project management contexts), but if the UI redesign adds a date display in a different component using a different formatter or `date-fns`'s `format(d, 'dd.MM.yyyy')`, both formats will coexist again.
-
-**Prevention:**
-- Create a single `formatDate(d: Date): string` utility that all components use
-- Document the intentional choice of 2-digit year in a comment
-- Add a test that verifies `formatDateShort` output format so future changes are caught
-
-**Phase:** UI Redesign (Phase 2)
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| ReactFlow `isValidConnection` | Close over `edges` from `useEdgesState` for cycle check | Use `useReactFlow().getEdges()` inside the callback body — always live, never stale |
+| ReactFlow `addEdge` | Assume it prevents all duplicate edges | `addEdge` deduplicates by `source+target+sourceHandle+targetHandle`; if handles are not set, it works; but don't rely on it as the only guard |
+| ReactFlow edge `id` generation | Use auto-generated `id` from `source+target` string concat | Duplicate IDs can appear if user deletes and recreates the same connection; use `crypto.randomUUID()` or ReactFlow's default handle-aware ID |
+| `fromProjectJSON` edge mapping | Maps `{from, to}` to `{source, target}` with id `${from}-${to}` | If two edges share the same `from-to` pair (not currently possible, but possible after v2.0 with different handles), this creates duplicate ReactFlow edge IDs — add `id: crypto.randomUUID()` or encode handles in the ID |
+| `toProjectJSON` / `fromProjectJSON` round-trip | Serialize only `from`/`to` — sufficient for single-handle graphs | Adequate for v2.0 since PathWeaver uses single source/target handles per node; document this assumption explicitly |
 
 ---
 
-### Pitfall 9: Zustand Removal Leaving Dead Imports
+## Performance Traps
 
-**What goes wrong:**
-Zustand is installed (`zustand: ^5.0.8`) but the codebase does not use it for any runtime state. However, `immer` (`^10.1.3`) is also installed and is a common Zustand middleware dependency. Removing Zustand from `package.json` without checking whether `immer` is used elsewhere will silently leave `immer` as a dead dependency (or, if `immer` is actually used somewhere, removing it breaks the build).
-
-**Prevention:**
-- Search for all imports of `zustand` and `immer` before removing either
-- Run `npm ls immer` to see if any other dependency relies on it transitively
-- Remove both or keep both based on findings
-
-**Warning signs:**
-- `import { produce } from 'immer'` found anywhere in `src/`
-- `import { create } from 'zustand'` found anywhere in `src/`
-
-**Phase:** Code Quality & Stability (Phase 1, Zustand tech debt task)
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| `nodes.find(x => x.id === n)` inside forward/backward pass loop (lines 106, 125) | O(n²) for large graphs | Build a `Map<NodeId, TaskNode>` once before the loops | Noticeable at ~200+ nodes; PathWeaver's use case likely never reaches this, but flagged for awareness |
+| `isValidConnection` cycle-reachability check doing full BFS on every drag hover | UI lag during drag-to-connect on graphs with 50+ nodes | Acceptable for typical CPM network sizes (< 50 nodes) — no optimization needed at this scale | Not a concern for PathWeaver's use case |
+| `computeCPM` called in a `useMemo` that depends on full `nodes`/`edges` arrays | Recomputes on every node position change (drag) | Add a separate memo that extracts only IDs + durations + edge pairs, and only recompute CPM when that lightweight memo changes | Becomes visible as jank when dragging nodes with 30+ nodes |
 
 ---
 
-### Pitfall 10: `TopRightDebug.tsx` Remains Imported Even When Hidden
+## UX Pitfalls
 
-**What goes wrong:**
-Hiding `TopRightDebug.tsx` behind `import.meta.env.DEV` (from PROJECT.md requirements) only prevents rendering in production. If the import statement itself is not conditional, the module and its dependencies are still included in the production bundle. Vite's tree-shaking will eliminate the rendering code, but any side effects in the module (e.g., `console.log` calls at module scope) would still execute.
-
-**Prevention:**
-- Use dynamic `import()` with `import.meta.env.DEV` condition, or simply delete the component and its import entirely if it has no ongoing value
-- Verify the production bundle does not include debug code using `vite build --report` and checking the output manifest
-
-**Phase:** Code Quality & Stability (Phase 1)
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Removing the 1-outgoing-edge limit with no user communication | Users who knew about the limit are confused why previous behavior changed; users who did not know may accidentally create unintended fan-out | Update HelpOverlay to explicitly describe that tasks can now have multiple successors |
+| Connection rejected silently (isValidConnection returns false) without tooltip | User drags to create a connection, it disappears, no explanation | ReactFlow 11 does not natively show rejection tooltips; the existing error banner is the only feedback — acceptable for now, but a note in the UX phase |
+| Critical path highlighting showing only one branch of a multi-branch critical path | User sees partial highlighting and thinks something is broken | Fix the critical subgraph traversal (Pitfall 1) before any user-facing visual change |
+| Error border on task nodes with multiple outgoing edges (the `nodesWithTooManyOut` red border) still showing after the limit is removed | Valid connections look broken | Remove the `nodesWithTooManyOut` highlighting atomically with the algorithm change |
 
 ---
 
-## Phase-Specific Warnings
+## "Looks Done But Isn't" Checklist
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| localStorage key/ID changes | Silent data loss from missing migration | Write migration function before changing keys; add console.error to all catch blocks first |
-| `dom-to-image-more` → `html-to-image` | UI controls captured in PNG; unsupported options silently ignored | Audit capture target element; use `filter` option; remove `quality` from `toPng` calls |
-| `as any` removal | TypeScript errors cascade through ReactFlow-typed state | Categorize casts first; fix serialize.ts before GraphCanvas.tsx |
-| Adding test coverage | ReactFlow components untestable in JSDOM for visual state | Test pure logic (CPM, serialize, workdays) in unit tests; use Playwright for visual assertions |
-| Visual redesign / Tailwind classes | Inline styles silently override new Tailwind classes | Migrate one component fully before moving to the next; no mixed styling on same property |
-| setTimeout → useEffect refactor | Infinite render loop from unstable validate dependency | Extract validate as pure function taking nodes/edges params; fix exhaustive-deps warnings |
-| JSON schema enforcement | Round-trip import fails due to `computed` field not in schema | Strip `computed` from export or add it to schema before enabling strict validation |
+- [ ] **Multi-predecessor forward pass:** CPM computes correct FAZ for a merge node (diamond: two predecessors with different durations — FAZ must equal MAX not MIN)
+- [ ] **Critical path completeness:** All zero-slack nodes are highlighted, not just a single traversal path — verify with a symmetric diamond where both branches are critical
+- [ ] **Cycle prevention at connection time:** `isValidConnection` rejects B→A when A→B already exists — not just the post-hoc error banner
+- [ ] **Dead error code removal:** `'MULTIPLE_OUTGOING'` no longer in `ComputeErrorCode` union AND no test still expects it AND no UI code still references `nodesWithTooManyOut`
+- [ ] **Backward compatibility of existing JSON:** A v1.0 JSON file (which by definition has max 1 outgoing edge per task) loads and computes correctly in v2.0 without migration — verify with an actual saved file
+- [ ] **Test coverage for new topologies:** At minimum: diamond, parallel chains, multiple successors from Start, multiple predecessors to End — all with expected FAZ/FEZ/slack values explicitly asserted
+- [ ] **Duplicate edge prevention:** Two connections from A to B cannot be created — `addEdge` deduplication alone is sufficient, but verify with a rapid-click test or an explicit `isValidConnection` check
+- [ ] **End node backward pass:** LF of End is initialized to `maxEF` over all nodes (line 118) — this works correctly for multi-predecessor End but verify with test that End has multiple predecessors
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Critical path shows only one branch (Pitfall 1) | MEDIUM | Replace `criticalPath` array with critical edge set; update Banner to use `project.durationAT`; update edge styling to use edge set; run tests |
+| Stale closure in isValidConnection creates duplicate edges (Pitfall 2) | LOW | Replace `edges.filter(...)` with `getEdges().filter(...)`; no test changes needed |
+| Cycles reachable after constraint removal (Pitfall 3) | MEDIUM | Add BFS reachability check to `isValidConnection`; add test that confirms cycle is blocked |
+| MULTIPLE_OUTGOING removal breaks tests (Pitfall 4) | LOW | Remove from type union + compute guard + UI highlighting atomically; update test expectations |
+| Silent wrong FAZ from `?? 0` fallback (Pitfall 5) | LOW | Add `EF.has(p)` assertion; run all 44 existing tests + new diamond tests |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Single-path critical path traversal (Pitfall 1) | Phase 1: CPM Algorithm Upgrade | Test: symmetric diamond shows both branches highlighted |
+| Stale `edges` closure in `isValidConnection` (Pitfall 2) | Phase 1: CPM Algorithm Upgrade (guard refactor) | Test: rapid double-connection does not create duplicate edge |
+| No cycle prevention at connection time (Pitfall 3) | Phase 1: CPM Algorithm Upgrade | Test: B→A rejected when A→B exists |
+| MULTIPLE_OUTGOING removal incomplete (Pitfall 4) | Phase 1: CPM Algorithm Upgrade | TypeScript compiles with no reference to MULTIPLE_OUTGOING; no red border on valid multi-successor node |
+| Incorrect FAZ from `?? 0` fallback (Pitfall 5) | Phase 1: CPM Algorithm Upgrade | Test: merge node with unequal predecessor durations shows correct FAZ |
+| Backward compatibility of v1.0 JSON | Phase 1: CPM Algorithm Upgrade | Load existing saved JSON from localStorage after upgrade; verify no compute errors |
+| UX confusion from undocumented capability change | Phase 2: UX and Validation Polish | HelpOverlay updated; manual test: user can create fork and understand it is intentional |
 
 ---
 
 ## Sources
 
-- Direct codebase analysis: `web/src/persistence/autosave.ts`, `serialize.ts`, `GraphCanvas.tsx`, `AppToolbar.tsx`, `TaskNode.tsx`, `graph/validate.ts`, `cpm/workdays.ts`, `cpm/types.ts`
-- Test infrastructure analysis: `vitest.setup.ts`, `App.test.tsx`, `compute.test.ts`, `vite.config.ts`
-- Project requirements: `.planning/PROJECT.md`, `.planning/codebase/CONCERNS.md`, `.planning/codebase/CONVENTIONS.md`
-- Confidence: HIGH for all pitfalls (grounded in actual code, not hypothetical)
+- Direct codebase analysis: `web/src/cpm/compute.ts`, `web/src/graph/validate.ts`, `web/src/components/GraphCanvas.tsx`, `web/src/persistence/serialize.ts`, `web/src/cpm/compute.test.ts`, `web/src/graph/validate.test.ts`
+- ReactFlow 11 `isValidConnection` API: https://reactflow.dev/api-reference/types/is-valid-connection
+- ReactFlow official cycle prevention example: https://reactflow.dev/examples/interaction/prevent-cycles
+- ReactFlow `addEdge` deduplication behavior: https://reactflow.dev/api-reference/utils/add-edge
+- CPM forward pass merge node rule (FAZ = MAX of predecessor FEZ): https://www.pmi.org/learning/library/critical-path-method-calculations-scheduling-8040
+- Multiple critical paths in CPM networks: https://boyleprojectconsulting.com/tomsblog/2017/09/16/multiple-critical-paths-in-a-single-cpm-schedule/
+
+---
+*Pitfalls research for: PathWeaver v2.0 — Multi-Predecessor CPM*
+*Researched: 2026-03-17*
