@@ -9,12 +9,11 @@ export function validateGraph(nodes: Node[], edges: Edge[]): string[] {
   const start = nodes.find((n) => n.type === 'start')?.id
   const end = nodes.find((n) => n.type === 'end')?.id
 
-  if (!start || !end) return ['Start- oder Zielknoten fehlt']
+  if (!start || !end) return ['Start or end node missing']
 
-  // Start darf keine Eingänge, Ziel keine Ausgänge
   for (const e of edges) {
-    if (e.target === start) errors.push('Start hat Eingänge')
-    if (e.source === end) errors.push('Ziel hat Ausgänge')
+    if (e.target === start) errors.push('Start has incoming edges')
+    if (e.source === end) errors.push('End has outgoing edges')
   }
 
   // Build adjacency and indegree for Kahn (cycle detection)
@@ -42,7 +41,7 @@ export function validateGraph(nodes: Node[], edges: Edge[]): string[] {
       if (d === 0) q.push(nxt)
     }
   }
-  if (visited < ids.size) errors.push('Zyklus erkannt')
+  if (visited < ids.size) errors.push('Cycle detected')
 
   // Reachability from start
   const reach = new Set<string>([start])
@@ -56,7 +55,7 @@ export function validateGraph(nodes: Node[], edges: Edge[]): string[] {
   }
   for (const id of ids) {
     if (!reach.has(id) && idToType.get(id) !== 'start') {
-      errors.push(`Knoten ${id} ist nicht mit Start verbunden`)
+      errors.push(`Node ${id} is not connected to Start`)
     }
   }
 

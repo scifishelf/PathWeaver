@@ -12,8 +12,8 @@ import demoMars from '../../../docs/testdaten/mars-kolonisierung.json'
 
 const DEMO_FILES = [
   { label: 'PathWeaver Test', data: demoPathweaverTest },
-  { label: 'Döner-Laden Tagesablauf', data: demoDoenerladen },
-  { label: 'Mars-Kolonisierung', data: demoMars },
+  { label: 'Döner Shop Daily Schedule', data: demoDoenerladen },
+  { label: 'Mars Colonization', data: demoMars },
 ]
 
 interface Props {
@@ -70,7 +70,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
       const { nodes: nn, edges: ee } = fromProjectJSON(parsed)
       onImport(nn, ee, parsed.settings?.startDate)
     } catch {
-      setImportErrors(['Ungültiges JSON'])
+      setImportErrors(['Invalid JSON'])
       setImportOpen(true)
     }
   }
@@ -170,7 +170,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
             }}
           >
             <div style={{ fontWeight: 600, fontSize: 13, color: '#f8fafc', marginBottom: 8 }}>
-              Demodaten laden
+              Load Demo Data
             </div>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {DEMO_FILES.map((demo) => (
@@ -246,6 +246,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
               <div style={{ fontWeight: 600, fontSize: 13, color: '#f8fafc' }}>Snapshots</div>
+
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <input
                   type="text"
@@ -261,6 +262,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                     }
                   }}
                   placeholder="Name (optional)"
+
                   style={{
                     width: 130,
                     padding: '4px 8px',
@@ -294,12 +296,12 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  + Neu
+                  + New
                 </button>
               </div>
             </div>
             {snaps.length === 0 ? (
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', padding: '4px 0' }}>Keine Snapshots</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', padding: '4px 0' }}>No Snapshots</div>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, maxHeight: 220, overflowY: 'auto' }}>
                 {snaps.map((s) => (
@@ -336,7 +338,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                           cursor: 'pointer',
                         }}
                       >
-                        Laden
+                        Load
                       </button>
                       <button
                         onClick={() => {
@@ -353,7 +355,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
                           cursor: 'pointer',
                         }}
                       >
-                        Löschen
+                        Delete
                       </button>
                     </span>
                   </li>
@@ -372,7 +374,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
         onClick={onPngClick}
         disabled={exporting}
       >
-        {exporting ? 'Exportiere...' : 'PNG'}
+        {exporting ? 'Exporting...' : 'PNG'}
       </Button>
 
       {/* Hidden file input for import */}
@@ -384,10 +386,10 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
         style={{ display: 'none' }}
       />
 
-      <Modal open={importOpen} onClose={() => setImportOpen(false)} title="JSON importieren">
+      <Modal open={importOpen} onClose={() => setImportOpen(false)} title="Import JSON">
         <div style={{ fontSize: 13 }}>
           <div style={{ fontWeight: 600, marginBottom: 10, color: '#f8fafc' }}>
-            Die Datei konnte nicht importiert werden:
+            The file could not be imported:
           </div>
           <ul style={{ paddingLeft: 18, marginBottom: 14, color: 'rgba(255,255,255,0.7)' }}>
             {importErrors.map((e, i) => (
@@ -396,7 +398,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
           </ul>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button variant="outline" onClick={() => setImportOpen(false)}>
-              Schließen
+              Close
             </Button>
           </div>
         </div>

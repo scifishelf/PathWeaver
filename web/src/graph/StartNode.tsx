@@ -56,7 +56,7 @@ export function StartNode({ data }: { data: { label: string; startDate?: string;
             width: 104,
             colorScheme: 'dark',
           }}
-          title="Projekt-Startdatum"
+          title="Project Start Date"
         />
       </div>
 

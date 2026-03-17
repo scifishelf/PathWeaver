@@ -35,7 +35,7 @@ function GraphCanvasInner() {
   const initialNodes = useMemo(
     () => [
       { id: 'start', position: { x: 120, y: 300 }, data: { label: 'Start' }, type: 'start', deletable: false },
-      { id: 'end', position: { x: 1040, y: 300 }, data: { label: 'Ziel' }, type: 'end', deletable: false },
+      { id: 'end', position: { x: 1040, y: 300 }, data: { label: 'End' }, type: 'end', deletable: false },
     ],
     []
   )
@@ -74,9 +74,8 @@ function GraphCanvasInner() {
 
   const addTaskNode = useCallback((x?: number, y?: number) => {
     const id = crypto.randomUUID()
-    // Count existing task nodes for sequential German title
     const taskCount = nodes.filter((n) => n.type === 'task').length
-    const title = `Aufgabe ${taskCount + 1}`
+    const title = `Task ${taskCount + 1}`
     const position = {
       x: x ?? 420,
       y: y ?? 160,
@@ -237,7 +236,7 @@ function GraphCanvasInner() {
   }, [nodes, nodesWithTooManyOut, reachableFromStart, cp, onEditTask])
 
   const styledEdges = useMemo(() => {
-    const cycle = errors.some((e) => /Zyklus/.test(e))
+    const cycle = errors.some((e) => /Cycle/.test(e))
     const cpPairs = new Set<string>()
     if (cp?.criticalPath) {
       for (let i = 0; i < cp.criticalPath.length - 1; i++) {
@@ -322,8 +321,8 @@ function GraphCanvasInner() {
         </Panel>
         <Panel position="top-left" style={{ left: 72, top: 16, zIndex: 10002 }}>
           <button
-            aria-label="Neuen Task hinzufügen"
-            title="Neuen Task hinzufügen"
+            aria-label="Add New Task"
+            title="Add New Task"
             onClick={() => addTaskNode()}
             style={{
               height: 44,
@@ -386,7 +385,7 @@ function GraphCanvasInner() {
           }}
         >
           <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22d3ee', display: 'inline-block', boxShadow: '0 0 6px #22d3ee' }} />
-          Kritischer Pfad: {cp.project.durationAT} Arbeitstage
+          Critical Path: {cp.project.durationAT} Working Days
         </div>
       )}
       {errors.length > 0 && (
@@ -410,7 +409,7 @@ function GraphCanvasInner() {
             padding: 12,
             color: '#f87171',
           }}>
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Fehler im Graphen</div>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>Graph Errors</div>
             <ul style={{ paddingLeft: 18, color: 'rgba(248,113,113,0.85)', fontSize: 13 }}>
               {errors.map((e, i) => (
                 <li key={i}>{e}</li>
@@ -451,7 +450,7 @@ function GraphCanvasInner() {
           onClose={() => setMenu(null)}
           items={[
             {
-              label: 'Löschen',
+              label: 'Delete',
               onClick: deleteNode,
               disabled: nodes.find((n) => n.id === menu.nodeId)?.deletable === false,
             },

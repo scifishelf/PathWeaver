@@ -16,9 +16,9 @@ export function saveCurrent(project: ProjectJSON): SaveResult {
   } catch (e) {
     console.error(e)
     if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-      return { ok: false, error: 'Speicher voll — bitte Snapshots löschen oder Projekt als JSON exportieren' }
+      return { ok: false, error: 'Storage full — please delete snapshots or export project as JSON' }
     }
-    return { ok: false, error: 'Speichern fehlgeschlagen — bitte Seite neu laden oder Projekt als JSON exportieren' }
+    return { ok: false, error: 'Save failed — please reload the page or export project as JSON' }
   }
 }
 

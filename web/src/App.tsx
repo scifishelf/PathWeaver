@@ -48,7 +48,7 @@ export default function App() {
                 PathWeaver
               </div>
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', lineHeight: 1 }}>
-                Netzplan-Tool
+                Network Plan Tool
               </div>
             </div>
           </div>
@@ -56,8 +56,8 @@ export default function App() {
           {/* Right side */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
-              aria-label="Hilfe öffnen"
-              title="Schnellreferenz"
+              aria-label="Open Help"
+              title="Quick Reference"
               onClick={() => setHelpOpen(true)}
               style={{
                 display: 'flex',

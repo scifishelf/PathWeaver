@@ -31,7 +31,7 @@ function topoSort(nodes: NodeId[], edges: Edge[]): NodeId[] {
       if (set.size === 0) q.push(m)
     }
   }
-  if (order.length !== nodes.length) throw new ComputeError('CYCLE', 'Zyklus erkannt')
+  if (order.length !== nodes.length) throw new ComputeError('CYCLE', 'Cycle detected')
   return order
 }
 
@@ -41,19 +41,19 @@ export function computeCPM(input: ProjectJSON): ComputedResult {
 
   const start = nodes.find((n) => n.type === 'start')?.id
   const end = nodes.find((n) => n.type === 'end')?.id
-  if (!start || !end) throw new ComputeError('MISSING_START_END', 'Start/Ziel fehlen')
+  if (!start || !end) throw new ComputeError('MISSING_START_END', 'Start/End missing')
 
   // Regeln: Start ohne Eingänge, Ende ohne Ausgänge, max. 1 Ausgang je Task
   for (const e of edges) {
-    if (e.to === start) throw new ComputeError('START_HAS_INCOMING', 'Start hat Eingänge')
-    if (e.from === end) throw new ComputeError('END_HAS_OUTGOING', 'Ziel hat Ausgänge')
+    if (e.to === start) throw new ComputeError('START_HAS_INCOMING', 'Start has incoming edges')
+    if (e.from === end) throw new ComputeError('END_HAS_OUTGOING', 'End has outgoing edges')
   }
   const outCounts = new Map<NodeId, number>()
   for (const n of nodes) outCounts.set(n.id, 0)
   for (const e of edges) outCounts.set(e.from, (outCounts.get(e.from) ?? 0) + 1)
   for (const n of nodes) {
     if (n.type === 'task' && (outCounts.get(n.id) ?? 0) > 1) {
-      throw new ComputeError('MULTIPLE_OUTGOING', `Mehr als 1 Ausgang an Knoten ${n.id}`)
+      throw new ComputeError('MULTIPLE_OUTGOING', `More than 1 outgoing edge at node ${n.id}`)
     }
   }
 
@@ -71,7 +71,7 @@ export function computeCPM(input: ProjectJSON): ComputedResult {
     }
   }
   for (const n of nodes) {
-    if (!reachable.has(n.id)) throw new ComputeError('ORPHAN', `Knoten ${n.id} ist nicht mit Start verbunden`)
+    if (!reachable.has(n.id)) throw new ComputeError('ORPHAN', `Node ${n.id} is not connected to Start`)
   }
 
   // Topologische Ordnung
@@ -86,7 +86,7 @@ export function computeCPM(input: ProjectJSON): ComputedResult {
   for (const n of nodes) {
     if (n.type === 'task') {
       const d = n.duration
-      if (d == null || d < 0) throw new ComputeError('INVALID_DURATION', `Dauer fehlt/negativ für ${n.id}`)
+      if (d == null || d < 0) throw new ComputeError('INVALID_DURATION', `Duration missing/negative for ${n.id}`)
     }
   }
 

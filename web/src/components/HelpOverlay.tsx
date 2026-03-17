@@ -42,14 +42,14 @@ const cellStyle: React.CSSProperties = {
 
 export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
   return (
-    <Modal open={open} onClose={onClose} title="Schnellreferenz">
+    <Modal open={open} onClose={onClose} title="Quick Reference">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, fontSize: 13 }}>
 
         {/* Section 1: Node Layout */}
         <div>
           <div style={sectionHeader}>
             <Grid3x3 size={14} color="#60a5fa" />
-            Knotenlayout (3×3 Grid)
+            Node Layout (3×3 Grid)
           </div>
           <div
             style={{
@@ -60,18 +60,18 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
               margin: '0 auto',
             }}
           >
-            <div style={{ ...cellStyle, color: '#60a5fa' }}>FB</div>
-            <div style={{ ...cellStyle, color: '#60a5fa' }}>Dauer</div>
-            <div style={{ ...cellStyle, color: '#60a5fa' }}>FA</div>
+            <div style={{ ...cellStyle, color: '#60a5fa' }}>ES</div>
+            <div style={{ ...cellStyle, color: '#60a5fa' }}>Dur.</div>
+            <div style={{ ...cellStyle, color: '#60a5fa' }}>EF</div>
             <div style={{ ...cellStyle, gridColumn: '1 / span 3', color: '#f8fafc', fontWeight: 600, padding: '5px' }}>
               Name
             </div>
             <div style={cellStyle}>LS</div>
-            <div style={cellStyle}>Schlupf</div>
-            <div style={cellStyle}>LA</div>
+            <div style={cellStyle}>Slack</div>
+            <div style={cellStyle}>LF</div>
           </div>
           <div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-            FB = Frühester Beginn · FA = Frühestes Ende · LS = Spätester Beginn · LA = Spätestes Ende
+            ES = Early Start · EF = Early Finish · LS = Late Start · LF = Late Finish
           </div>
         </div>
 
@@ -79,14 +79,14 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
         <div>
           <div style={sectionHeader}>
             <Keyboard size={14} color="#a78bfa" />
-            Tastenkürzel
+            Keyboard Shortcuts
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {[
-              { key: 'T', desc: 'Neue Aufgabe hinzufügen' },
-              { key: 'Esc', desc: 'Dialog schließen' },
-              { key: '⌘Z', desc: 'Rückgängig (Undo)' },
-              { key: '⌘Y', desc: 'Wiederholen (Redo)' },
+              { key: 'T', desc: 'Add New Task' },
+              { key: 'Esc', desc: 'Close Dialog' },
+              { key: '⌘Z', desc: 'Undo' },
+              { key: '⌘Y', desc: 'Redo' },
             ].map(({ key, desc }) => (
               <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={kbdStyle}>{key}</span>
@@ -100,7 +100,7 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
         <div>
           <div style={sectionHeader}>
             <Zap size={14} color="#22d3ee" />
-            Kritischer Pfad
+            Critical Path
           </div>
           <div
             style={{
@@ -119,17 +119,17 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
             }}
           >
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22d3ee', display: 'inline-block', boxShadow: '0 0 8px #22d3ee' }} />
-            Cyan Glow = Kritischer Pfad
+            Cyan Glow = Critical Path
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
-            Knoten und Kanten auf dem kritischen Pfad werden mit Cyan hervorgehoben. Schlupf = 0 auf diesem Pfad.
+            Nodes and edges on the critical path are highlighted in cyan. Slack = 0 on this path.
           </div>
         </div>
 
         {/* Section 4: Connections */}
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
           <BookOpen size={12} style={{ display: 'inline', marginRight: 5, color: '#60a5fa' }} />
-          Verbinden: vom rechten Handle zum Zielknoten ziehen · Max. 1 Ausgang je Task
+          Connect: drag from right handle to target node · Max. 1 outgoing per task
         </div>
       </div>
     </Modal>
