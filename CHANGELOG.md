@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] — 2026-03-17
+
+### Added
+- "Why CPM?" info overlay accessible via the `BookOpen` button in the header
+- Illustrative SVG network diagram showing a critical path (cyan) vs. non-critical path (dashed)
+- Origin timeline: DuPont/Remington Rand 1956 → first use 1958 → NASA/PERT 1960s → today
+- Benefits grid (precise project end date, bottleneck detection, resource prioritization, scenario analysis)
+- CPM glossary pills: ES, EF, LS, LF, Float, CP
+- `Modal` component extended with optional `maxWidth` prop (default unchanged at 512 px)
+
+---
+
 ## [1.3.0] — 2026-03-17
 
 ### Added
