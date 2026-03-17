@@ -66,6 +66,9 @@ export function fromProjectJSON(project: ProjectJSON): { nodes: Node<AppNodeData
     const data: EndNodeData = { type: 'end', label: 'End' }
     return { id: jn.id, type: 'end', position: { x, y }, data, deletable: false }
   })
+  // Edge IDs use the `${from}-${to}` scheme. This assumes each node has a single
+  // source handle (one outgoing connection slot), so the pair (from, to) is unique.
+  // If multi-handle nodes are introduced, this scheme must be revisited.
   const edges: Edge[] = project.edges.map((e) => ({ id: `${e.from}-${e.to}`, source: e.from, target: e.to }))
   return { nodes, edges }
 }

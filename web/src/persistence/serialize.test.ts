@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { toProjectJSON, fromProjectJSON, validateProjectJSON, isProjectJSON } from './serialize'
+import { computeCPM } from '../cpm/compute'
 import type { Node, Edge } from 'reactflow'
 import type { AppNodeData, TaskNodeData, StartNodeData, EndNodeData } from '../cpm/types'
 import type { ProjectJSON } from '../cpm/types'
@@ -146,5 +147,44 @@ describe('validateProjectJSON (existing — regression guard)', () => {
       edges: [],
     }
     expect(validateProjectJSON(noStart)).toContain('Start\u2011Knoten fehlt')
+  })
+})
+
+describe('v1.0 backward compatibility (UX-03)', () => {
+  it('loads a v1.0 linear project without errors and computes correct CPM', () => {
+    const v1Project: ProjectJSON = {
+      settings: { version: '1.0' },
+      nodes: [
+        { id: 'start', type: 'start', x: 0, y: 0 },
+        { id: 'A', type: 'task', title: 'Analysis', duration: 3, x: 100, y: 0 },
+        { id: 'B', type: 'task', title: 'Build', duration: 5, x: 200, y: 0 },
+        { id: 'end', type: 'end', x: 300, y: 0 },
+      ],
+      edges: [
+        { from: 'start', to: 'A' },
+        { from: 'A', to: 'B' },
+        { from: 'B', to: 'end' },
+      ],
+    }
+
+    // 1. Type guard accepts v1.0 fixture
+    expect(isProjectJSON(v1Project)).toBe(true)
+
+    // 2. Deserialize without throwing
+    const { nodes, edges } = fromProjectJSON(v1Project)
+    expect(nodes).toHaveLength(4)
+    expect(edges).toHaveLength(3)
+
+    // 3. Edge ID scheme preserved
+    expect(edges.find(e => e.source === 'A' && e.target === 'B')?.id).toBe('A-B')
+
+    // 4. Round-trip through toProjectJSON + computeCPM
+    const json = toProjectJSON(nodes, edges)
+    const result = computeCPM(json)
+    expect(result.project.durationAT).toBe(8)
+    expect(result.nodes['A'].ES).toBe(0)
+    expect(result.nodes['B'].ES).toBe(3)
+    expect(result.criticalNodeIds.has('A')).toBe(true)
+    expect(result.criticalNodeIds.has('B')).toBe(true)
   })
 })
