@@ -49,16 +49,60 @@
 
 ---
 
+## Milestone: v2.0 — Multi-Predecessor CPM
+
+**Shipped:** 2026-03-17
+**Phases:** 2 | **Plans:** 3
+
+### What Was Built
+
+- Phase 3 (Algorithm & Guard Removal): MULTIPLE_OUTGOING Guard entfernt, CPM Forward Pass mit Math.max für Merge-Knoten, criticalNodeIds Set-Ansatz für vollständige Highlighting-Korrektheit, BFS Cycle Detection in isValidConnection, Duplicate-Edge-Guard, Live Edge State via getEdges()
+- Phase 4 (UX Polish & Validation): HelpOverlay bereinigt (veralteter "max. 1 Ausgang"-Hinweis), v1.0 Backward-Compat-Regressionstest, Edge-ID-Schema `${from}-${to}` mit explizitem Kommentar dokumentiert
+
+### What Worked
+
+- **TDD-First für Algorithmus-Änderungen:** Plan 03-01 schrieb Tests für Fan-out, Diamond-Equal, Diamond-Unequal und Merge-Knoten-FAZ bevor die Guard-Entfernung begann — sofortige Rückmeldung bei Regression
+- **Set-Ansatz für criticalNodeIds:** Ersetzte greedy single-path walk komplett mit `new Set<NodeId>(entries where slack === 0)` — eleganter, erweiterbar, korrekt für alle Topologien
+- **Atomare Guard-Entfernung:** compute.ts, types.ts und GraphCanvas.tsx in einem Plan behandelt (03-01 + 03-02 klar getrennt) — verhinderte Intermediate States mit inkonsistentem Algorithmus
+- **Backward-Compat-Test als Abschluss:** Plan 04-01 validierte v1.0 → v2.0 Migration explizit und regressiert nicht in Zukunft
+
+### What Was Inefficient
+
+- **Stale Kommentar in compute.ts:46:** "max. 1 Ausgang je Task" überlebte die Guard-Entfernung in 03-01 — hätte im selben Commit entfernt werden sollen; bleibt als Tech Debt
+- **Pre-existing Test-String-Mismatch:** serialize.test.ts:141/149 assertiert deutsche Strings, die `validateProjectJSON` nicht mehr ausgibt — pre-existing seit v1.0, aber nie behoben; 2 Tests sind dauerhaft rot
+- **Kurzes Milestone:** v2.0 mit 3 Plänen an einem Tag — effizient, aber Nyquist-Validierung (VALIDATION.md) blieb in draft/uncompleted
+
+### Patterns Established
+
+- `criticalNodeIds: Set<NodeId>` statt Array/single-path als kritischer Pfad-Repräsentation
+- BFS mit `getOutgoers()` von ReactFlow für Cycle Detection in `isValidConnection`
+- `getEdges()` / `getNodes()` via `useReactFlow()` statt closed-over state für isValidConnection-Dependency-Array
+- v1.0 Backward-Compat-Test als Fixture + `fromProjectJSON → toProjectJSON → computeCPM` Round-trip Muster
+
+### Key Lessons
+
+1. **Guard-Entfernung atomisch:** Multi-file Änderungen (compute.ts + types.ts + GraphCanvas) besser in aufeinanderfolgenden abhängigen Plänen als in einem überladenen Plan — 03-01 (Algorithm) / 03-02 (UI) war die richtige Trennung
+2. **Kommentare mit Code löschen:** Wenn ein Guard entfernt wird, sofort den zugehörigen Kommentar mitentfernen — Stale Comments sind langfristig teurer als der Commit-Overhead
+3. **Nyquist rechtzeitig:** VALIDATION.md in `draft` hinterlassen und `nyquist_compliant: false` ist technische Schuld — besser `/gsd:validate-phase` nach Execution ausführen
+
+### Cost Observations
+
+- Sessions: 1 Tag (2026-03-17)
+- Execution speed: 3 Pläne — ~3-6 Minuten pro Plan
+- Total: ~15 Commits für 2 Phasen
+
+---
+
 ## Cross-Milestone Trends
 
-| Metric | v1.0 |
-|--------|------|
-| Phases | 2 |
-| Plans | 12 |
-| Files modified | 82 |
-| LOC (TS/TSX) | ~2.317 |
-| Test count | 44 |
-| Avg plan duration | ~3.7 min |
+| Metric | v1.0 | v2.0 |
+|--------|------|------|
+| Phases | 2 | 2 |
+| Plans | 12 | 3 |
+| Files modified | 82 | 7 |
+| LOC (TS/TSX) | ~2.317 | ~3.467 |
+| Test count | 44 | 45 |
+| Avg plan duration | ~3.7 min | ~4 min |
 
 | Pattern | First seen |
 |---------|-----------|
@@ -66,3 +110,6 @@
 | Discriminated Union at boundaries | v1.0 |
 | Design Token system | v1.0 |
 | jsdom border-longhand | v1.0 |
+| criticalNodeIds Set for critical path | v2.0 |
+| BFS Cycle Detection via getOutgoers | v2.0 |
+| Live edge state via getEdges() in callbacks | v2.0 |
