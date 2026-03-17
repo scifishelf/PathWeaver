@@ -11,6 +11,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] — 2026-03-17
+
+### Changed
+
+- Task nodes may now have **any number of outgoing edges** — the artificial single-outgoing-edge restriction is removed
+- CPM forward pass uses `max` over all incoming EF values at merge nodes — correct ES/EF for fan-in topologies
+- Critical path highlighting now covers **all** zero-slack nodes, including diamond graphs with multiple equally critical branches
+
+### Added
+
+- BFS cycle detection in `isValidConnection` — drag-and-drop connections that would create a cycle are silently rejected
+- Duplicate edge guard — attempting to draw a second edge between the same node pair is prevented
+- v1.0 project files load and compute correctly in v2.0 (backward compatibility regression test)
+
+### Fixed
+
+- Multi-successor task nodes no longer display a red error border (`nodesWithTooManyOut` removed)
+- HelpOverlay no longer references the "max. 1 outgoing edge" constraint that no longer exists
+
+---
+
 ## [1.4.0] — 2026-03-17
 
 ### Added
@@ -102,7 +123,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/scifishelf/pathweaver/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/scifishelf/pathweaver/compare/v2.0...HEAD
+[2.0.0]: https://github.com/scifishelf/pathweaver/compare/v1.4.0...v2.0
+[1.4.0]: https://github.com/scifishelf/pathweaver/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/scifishelf/pathweaver/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/scifishelf/pathweaver/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/scifishelf/pathweaver/compare/v1.0.0...v1.1.0

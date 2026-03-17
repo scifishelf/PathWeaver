@@ -29,7 +29,7 @@ Everything runs in the browser using LocalStorage. There is no backend, no accou
 
 - **Interactive graph editor** — drag and drop Start, Task, and End nodes; connect them by pulling handles
 - **Real-time CPM computation** — forward pass, backward pass, ES/EF/LS/LF, and slack for every node
-- **Critical path highlighting** — the critical path glows in cyan; non-critical tasks show their float
+- **Critical path highlighting** — all parallel critical paths glow in cyan; multi-successor and diamond graphs fully supported
 - **Date-aware scheduling** — set a project start date; PathWeaver derives concrete dates for every node skipping weekends
 - **Graph validation** — cycle detection, orphan checks, structural rules, with inline error banners
 - **JSON import / export** — machine-readable project files with a [documented schema](docs/json-format.md)
@@ -126,10 +126,10 @@ Projects are stored as JSON files. The format is fully documented in [`docs/json
 ```
 
 **Graph rules enforced by the engine:**
-- Exactly one `start` node (may have multiple outgoing edges) and one `end` node
-- Every `task` node has **at most one outgoing edge** — use the start node to model parallel branches
-- Multiple incoming edges (join/merge) are always allowed
-- All nodes must be reachable from `start`; no cycles permitted
+- Exactly one `start` node and one `end` node
+- Task nodes may have **any number of outgoing edges** (fan-out) and any number of incoming edges (merge)
+- All nodes must be reachable from `start`; no cycles or duplicate edges permitted
+- Merge nodes: ES = max of all incoming EF values (correct multi-predecessor CPM)
 
 ## Development
 
