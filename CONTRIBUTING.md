@@ -32,7 +32,7 @@ Please be respectful and constructive in all interactions. We welcome contributo
 
 ```bash
 # Fork the repository on GitHub, then clone your fork
-git clone https://github.com/your-username/pathweaver.git
+git clone https://github.com/scifishelf/pathweaver.git
 cd pathweaver
 
 # Install dependencies
