@@ -36,7 +36,11 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
   3. User cannot create a cycle by drag-and-drop; the connection is silently rejected at the point of release
   4. Multi-successor Task nodes do not display a red error border
   5. The CPM forward pass produces the correct FAZ at merge nodes (maximum of all incoming FEZ values)
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — TDD: Remove MULTIPLE_OUTGOING guard, replace greedy walk with criticalNodeIds Set
+- [ ] 03-02-PLAN.md — Fix isValidConnection (BFS cycle detection, stale-closure fix), remove nodesWithTooManyOut
 
 ### Phase 4: UX Polish & Validation
 **Goal**: Users encounter no contradictory help text and their existing v1.0 project files load and compute correctly in v2.0
@@ -54,5 +58,5 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 |-------|-----------|----------------|--------|-----------|
 | 1. Code Quality & Stability | v1.0 | 7/7 | Complete | 2026-03-16 |
 | 2. UI — Clean & Professional | v1.0 | 5/5 | Complete | 2026-03-16 |
-| 3. Algorithm & Guard Removal | v2.0 | 0/? | Not started | - |
+| 3. Algorithm & Guard Removal | v2.0 | 0/2 | In progress | - |
 | 4. UX Polish & Validation | v2.0 | 0/? | Not started | - |
