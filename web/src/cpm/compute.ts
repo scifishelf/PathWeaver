@@ -128,17 +128,20 @@ export function computeCPM(input: ProjectJSON): ComputedResult {
     LS.set(n, minLS - dur)
   }
 
+  // Floating-Point-Artefakte eliminieren (z.B. 2.77e-17 statt 0)
+  const rnd = (v: number) => Math.round(v * 1e10) / 1e10
+
   const computedNodes: ComputedResult['nodes'] = {}
   for (const n of nodes) {
     if (n.type === 'start') {
       computedNodes[n.id] = { ES: 0, EF: 0, LS: 0, LF: 0, slack: 0, critical: true }
       continue
     }
-    const es = ES.get(n.id) ?? 0
-    const ef = EF.get(n.id) ?? 0
-    const ls = LS.get(n.id) ?? 0
-    const lf = LF.get(n.id) ?? 0
-    const slack = ls - es
+    const es = rnd(ES.get(n.id) ?? 0)
+    const ef = rnd(EF.get(n.id) ?? 0)
+    const ls = rnd(LS.get(n.id) ?? 0)
+    const lf = rnd(LF.get(n.id) ?? 0)
+    const slack = rnd(ls - es)
     computedNodes[n.id] = { ES: es, EF: ef, LS: ls, LF: lf, slack, critical: slack === 0 }
   }
 

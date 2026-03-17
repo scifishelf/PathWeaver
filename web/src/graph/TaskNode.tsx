@@ -161,7 +161,7 @@ function TaskNodeBase({ data }: { data: TaskData }) {
           {formatWorkdayToDate((data as any)?.startDate, data.computed?.LS)}
         </div>
         <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11 }}>
-          {data.computed?.slack ?? '—'}
+          {data.computed != null ? parseFloat(data.computed.slack.toFixed(6)) : '—'}
         </div>
         <div style={{ textAlign: 'right', color: 'rgba(255,255,255,0.55)', fontSize: 11 }}>
           {formatWorkdayToDate((data as any)?.startDate, data.computed?.LF)}

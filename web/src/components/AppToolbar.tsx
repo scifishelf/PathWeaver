@@ -4,8 +4,17 @@ import { useEffect, useRef, useState } from 'react'
 import { Modal } from './Modal'
 import { Button } from './Button'
 import { toPng } from 'html-to-image'
-import { Download, Upload, Layers, Image, Loader2 } from 'lucide-react'
+import { Download, Upload, Layers, Image, Loader2, FlaskConical } from 'lucide-react'
 import type { Edge, Node } from 'reactflow'
+import demoPathweaverTest from '../../../docs/testdaten/pathweaver_test.json'
+import demoDoenerladen from '../../../docs/testdaten/doenerladen-tagesablauf.json'
+import demoMars from '../../../docs/testdaten/mars-kolonisierung.json'
+
+const DEMO_FILES = [
+  { label: 'PathWeaver Test', data: demoPathweaverTest },
+  { label: 'Döner-Laden Tagesablauf', data: demoDoenerladen },
+  { label: 'Mars-Kolonisierung', data: demoMars },
+]
 
 interface Props {
   nodes: Node[]
@@ -19,6 +28,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
   const [snaps, setSnaps] = useState<{ id: string; ts: number; name?: string }[]>([])
   const [snapshotName, setSnapshotName] = useState('')
   const [open, setOpen] = useState(false)
+  const [demoOpen, setDemoOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
   const [importErrors, setImportErrors] = useState<string[]>([])
   const [exporting, setExporting] = useState(false)
@@ -130,6 +140,74 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
         Import
       </Button>
 
+      {/* Demo */}
+      <div style={{ position: 'relative' }}>
+        <Button
+          variant="ghost"
+          icon={<FlaskConical size={16} />}
+          onClick={() => {
+            setDemoOpen((v) => !v)
+            setOpen(false)
+          }}
+        >
+          Demo
+        </Button>
+        {demoOpen && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 8px)',
+              right: 0,
+              background: 'rgba(10,15,40,0.92)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 12,
+              width: 240,
+              padding: 10,
+              boxShadow: '0 16px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+              zIndex: 10002,
+            }}
+          >
+            <div style={{ fontWeight: 600, fontSize: 13, color: '#f8fafc', marginBottom: 8 }}>
+              Demodaten laden
+            </div>
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+              {DEMO_FILES.map((demo) => (
+                <li key={demo.label}>
+                  <button
+                    onClick={() => {
+                      const { nodes: nn, edges: ee } = fromProjectJSON(demo.data as any)
+                      onImport(nn, ee, (demo.data as any).settings?.startDate)
+                      setDemoOpen(false)
+                    }}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      fontSize: 12,
+                      padding: '6px 8px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderRadius: 6,
+                      color: 'rgba(255,255,255,0.75)',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'
+                    }}
+                    onMouseLeave={(e) => {
+                      ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                    }}
+                  >
+                    {demo.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
       <div style={separatorStyle} />
 
       {/* Group 2: Snapshots */}
@@ -140,6 +218,7 @@ export function AppToolbar({ nodes, edges, computed, startDate, onImport }: Prop
           onClick={() => {
             if (!open) {
               setOpen(true)
+              setDemoOpen(false)
               setSnaps(listSnapshots())
             } else {
               setOpen(false)

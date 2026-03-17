@@ -14,6 +14,7 @@ import { AppToolbar } from './AppToolbar'
 import { COLOR_CANVAS_BG, COLOR_ERROR, COLOR_ERROR_BG, COLOR_ERROR_BORDER, COLOR_WARNING_BG, COLOR_WARNING_BORDER, COLOR_WARNING_TEXT, RADIUS_MD, SHADOW_SM } from '../graph/theme'
 import { toProjectJSON, fromProjectJSON } from '../persistence/serialize'
 import { saveCurrent, loadCurrent, type SaveResult } from '../persistence/autosave'
+import demoProject from '../../../docs/testdaten/pathweaver_test.json'
 
 //
 
@@ -126,7 +127,7 @@ function GraphCanvasInner() {
     return () => clearTimeout(t)
   }, [validate, nodes, edges, startDate])
 
-  // Beim Start Autosave laden (falls vorhanden)
+  // Beim Start Autosave laden (falls vorhanden), sonst Demo-Daten
   useEffect(() => {
     try {
       const cur = loadCurrent()
@@ -135,6 +136,11 @@ function GraphCanvasInner() {
         setNodes(nn as any)
         setEdges(ee as any)
         setStartDate(cur.project.settings?.startDate)
+      } else {
+        const { nodes: nn, edges: ee } = fromProjectJSON(demoProject as any)
+        setNodes(nn as any)
+        setEdges(ee as any)
+        setStartDate(demoProject.settings?.startDate)
       }
     } catch (e) {
       console.error(e)
