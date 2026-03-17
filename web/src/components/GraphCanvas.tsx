@@ -237,15 +237,10 @@ function GraphCanvasInner() {
 
   const styledEdges = useMemo(() => {
     const cycle = errors.some((e) => /Cycle/.test(e))
-    const cpPairs = new Set<string>()
-    if (cp?.criticalPath) {
-      for (let i = 0; i < cp.criticalPath.length - 1; i++) {
-        cpPairs.add(cp.criticalPath[i] + '→' + cp.criticalPath[i + 1])
-      }
-    }
+    const criticalIds = cp?.criticalNodeIds ?? new Set<string>()
     return edges.map((e) => {
       const invalid = e.target === startId || nodesWithTooManyOut.has(e.source!) || cycle
-      const onCp = cpPairs.has(e.source + '→' + e.target)
+      const onCp = criticalIds.has(e.source!) && criticalIds.has(e.target!)
       const style: any = e.style ? { ...e.style } : {}
       if (invalid) {
         style.stroke = '#f87171'
