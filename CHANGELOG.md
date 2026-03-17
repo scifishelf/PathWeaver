@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] — 2026-03-17
+
+### Added
+- Demo dropdown in `AppToolbar` (between Import and Snapshots) listing all test-data files: PathWeaver Test, Döner-Laden Tagesablauf, Mars-Kolonisierung
+- Auto-load `pathweaver_test.json` as default project when no autosave exists in localStorage
+
+### Fixed
+- Floating-point artifacts in CPM computation (e.g. `2.77e-17` instead of `0`, `0.07500000000000001` instead of `0.075`) — all ES/EF/LS/LF/slack values are now rounded to 10 decimal places
+- `critical: slack === 0` check now works correctly for nodes whose slack is effectively zero
+- Slack display in `TaskNode` formatted with `toFixed(6)` to suppress remaining float noise
+- Döner-Laden demo layout: increased node spacing to 320 px to prevent overlap on both the parallel preparation paths and the sequential order-fulfilment chain
+
+---
+
 ## [1.2.0] — 2026-03-17
 
 ### Added
@@ -76,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-[Unreleased]: https://github.com/scifishelf/pathweaver/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/scifishelf/pathweaver/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/scifishelf/pathweaver/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/scifishelf/pathweaver/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/scifishelf/pathweaver/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/scifishelf/pathweaver/releases/tag/v1.0.0
