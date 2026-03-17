@@ -7,9 +7,9 @@
 
 ### Algorithmus & Guards
 
-- [ ] **ALGO-01**: Nutzer kann von einem Task-Knoten beliebig viele ausgehende Kanten zeichnen (Guard-Entfernung aus `compute.ts`, `types.ts`, `GraphCanvas.tsx` atomar)
-- [ ] **ALGO-02**: CPM-Berechnung ergibt korrekte FAZ-Werte bei Merge-Knoten (FAZ = max aller eingehenden FEZ)
-- [ ] **ALGO-03**: Kritische-Pfad-Highlighting zeigt alle parallelen kritischen Äste (criticalNodeIds-Ansatz statt greedy single-path walk)
+- [x] **ALGO-01**: Nutzer kann von einem Task-Knoten beliebig viele ausgehende Kanten zeichnen (Guard-Entfernung aus `compute.ts`, `types.ts`, `GraphCanvas.tsx` atomar)
+- [x] **ALGO-02**: CPM-Berechnung ergibt korrekte FAZ-Werte bei Merge-Knoten (FAZ = max aller eingehenden FEZ)
+- [x] **ALGO-03**: Kritische-Pfad-Highlighting zeigt alle parallelen kritischen Äste (criticalNodeIds-Ansatz statt greedy single-path walk)
 - [ ] **ALGO-04**: Nutzer kann keinen Zyklus durch Drag-and-Drop erzeugen (BFS Cycle Detection in `isValidConnection` via `getEdges()`/`getOutgoers`)
 - [ ] **ALGO-05**: Duplicate-Edge-Guard verhindert doppelte Kanten zwischen demselben Knoten-Paar
 - [ ] **ALGO-06**: `isValidConnection` liest aktuellen Kantenzustand via `getEdges()` statt stale closure
@@ -45,9 +45,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ALGO-01 | Phase 3 | Pending |
-| ALGO-02 | Phase 3 | Pending |
-| ALGO-03 | Phase 3 | Pending |
+| ALGO-01 | Phase 3 | Complete |
+| ALGO-02 | Phase 3 | Complete |
+| ALGO-03 | Phase 3 | Complete |
 | ALGO-04 | Phase 3 | Pending |
 | ALGO-05 | Phase 3 | Pending |
 | ALGO-06 | Phase 3 | Pending |
