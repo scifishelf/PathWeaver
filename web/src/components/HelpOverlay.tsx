@@ -129,7 +129,7 @@ export function HelpOverlay({ open, onClose }: HelpOverlayProps) {
         {/* Section 4: Connections */}
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
           <BookOpen size={12} style={{ display: 'inline', marginRight: 5, color: '#60a5fa' }} />
-          Connect: drag from right handle to target node · Max. 1 outgoing per task
+          Connect: drag from right handle to target node
         </div>
       </div>
     </Modal>
