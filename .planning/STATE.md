@@ -4,7 +4,7 @@ milestone: v2.0
 milestone_name: Multi-Predecessor CPM
 status: executing
 stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-17T14:29:25.662Z"
+last_updated: "2026-03-17T14:32:29.525Z"
 last_activity: 2026-03-17 — Completed 03-01 (CPM guard removal + criticalNodeIds)
 progress:
   total_phases: 2
