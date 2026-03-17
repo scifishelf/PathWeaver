@@ -11,6 +11,10 @@ Model project dependencies visually, identify your critical path instantly, and 
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=black)](https://react.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22d3ee.svg)](LICENSE)
 
+<br/>
+
+![PathWeaver Screenshot](docs/image.png)
+
 </div>
 
 ---
